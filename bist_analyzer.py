@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 from tvDatafeed import TvDatafeed, Interval
 import ta
 import logging
@@ -389,7 +390,7 @@ class BISTAnalyzer:
             self.logger.error(f"Trading sinyali hesaplama hatası: {e}")
             return self._get_default_signals()
     
-    def _calculate_overall_signal(self, signals, adx_value: float | None = None):
+    def _calculate_overall_signal(self, signals, adx_value: Optional[float] = None):
         """
         Genel sinyal ve güven skorunu hesapla
         Args:

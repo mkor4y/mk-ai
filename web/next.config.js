@@ -2,10 +2,8 @@
 const nextConfig = {
     reactStrictMode: true,
 
-    // Cross-origin development için izin ver (Cloudflare Tunnel)
-    allowedDevOrigins: [
-        'indexes-halloween-hon-expects.trycloudflare.com',
-    ],
+    // Cross-origin development için izin ver (örn: Cloudflare Tunnel)
+    allowedDevOrigins: (process.env.DEV_ORIGINS || '').split(',').filter(Boolean),
 
     // API proxy ayarları (FastAPI backend'e yönlendirme)
     async rewrites() {
