@@ -1,0 +1,241 @@
+/* Technology Section */
+.section {
+    padding: var(--space-20) var(--space-6);
+    background: #0a0e1a;
+    position: relative;
+    overflow: hidden;
+}
+
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: var(--space-12);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(14, 165, 233, 0.1);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #38bdf8;
+    margin-bottom: var(--space-4);
+}
+
+.header h2 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: var(--space-4);
+}
+
+.header p {
+    font-size: 1.0625rem;
+    color: rgba(248, 250, 252, 0.7);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+    margin-bottom: var(--space-12);
+}
+
+.card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: var(--space-6);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.card:hover {
+    border-color: rgba(14, 165, 233, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.cardIcon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+    border-radius: 14px;
+    font-size: 1.5rem;
+    margin-bottom: var(--space-4);
+}
+
+.card h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #f8fafc;
+    margin-bottom: var(--space-2);
+}
+
+.card p {
+    font-size: 0.9375rem;
+    color: rgba(248, 250, 252, 0.6);
+    line-height: 1.6;
+    margin-bottom: var(--space-4);
+}
+
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.features li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    color: rgba(248, 250, 252, 0.7);
+}
+
+.checkIcon {
+    color: #10b981;
+    font-weight: 600;
+}
+
+/* Tech Stack */
+.techStack {
+    text-align: center;
+    padding-top: var(--space-8);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.techStack h4 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(248, 250, 252, 0.5);
+    margin-bottom: var(--space-6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stackGrid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.stackItem {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+.stackItem:hover {
+    background: rgba(14, 165, 233, 0.1);
+    border-color: rgba(14, 165, 233, 0.3);
+}
+
+.stackItem span {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: rgba(248, 250, 252, 0.8);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .section {
+        padding: 60px 16px;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-4);
+    }
+
+    .header h2 {
+        font-size: 1.5rem;
+    }
+
+    .header p {
+        font-size: 0.9375rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .section {
+        padding: 40px 16px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+
+    .header h2 {
+        font-size: 1.25rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+
+    .card {
+        padding: var(--space-4);
+    }
+
+    .cardIcon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .card h3 {
+        font-size: 1rem;
+    }
+
+    .card p {
+        font-size: 0.875rem;
+    }
+
+    .stackGrid {
+        gap: 8px;
+    }
+
+    .stackItem {
+        padding: 8px 14px;
+    }
+
+    .stackItem span {
+        font-size: 0.8125rem;
+    }
+}

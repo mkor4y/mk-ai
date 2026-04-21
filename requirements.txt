@@ -1,0 +1,23 @@
+# Telegram Bot API
+python-telegram-bot==20.7
+
+# Veri analizi ve teknik analiz
+pandas==2.1.4
+numpy==1.24.3
+ta==0.10.2
+tvdatafeed
+
+# RSS feed okuma
+feedparser==6.0.10
+
+# HTTP istekleri
+requests==2.31.0
+
+# AI entegrasyonu
+openai==1.6.1
+
+# Çevre değişkenleri
+python-dotenv==1.0.0
+
+# Loglama ve hata yönetimi (Python built-in kütüphaneleri - yüklemeye gerek yok)
+# logging, asyncio, datetime, traceback - Python'un kendi içinde var

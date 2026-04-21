@@ -1,0 +1,23 @@
+
+# ---------------------------------------------------------
+# PROJEYİ YEREL AĞDA (WIFI) ÇALIŞTIRMA KOMUTLARI (HIZLI)
+# ---------------------------------------------------------
+
+# 1. Backend (Python)
+# C:\mymodel klasöründe:
+.\venv\Scripts\activate
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+# 2. Frontend (Next.js)
+# C:\mymodel\web klasöründe:
+npm run dev -- -H 0.0.0.0
+
+# 3. IP Adresini Öğrenme:
+ipconfig
+# IPv4 Address kısmındaki IP'yi al (örn: 192.168.1.35)
+# Telefondan giriş: http://192.168.1.35:3000
+
+# ---------------------------------------------------------
+# İNTERNETE AÇMA (Cloudflare - Yavaş olabilir)
+# ---------------------------------------------------------
+cloudflared tunnel --url http://localhost:3000

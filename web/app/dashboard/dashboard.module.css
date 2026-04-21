@@ -1,0 +1,91 @@
+/* Dashboard Page Styles */
+.dashboard {
+    display: flex;
+    min-height: 100vh;
+    background: #0a0e1a;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    padding-top: 60px;
+    /* Fixed header için boşluk */
+}
+
+.content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.primary {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+}
+
+.secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+}
+
+@media (max-width: 1200px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .secondary {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 12px;
+    }
+
+    .grid {
+        gap: 16px;
+    }
+
+    .secondary {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .primary {
+        gap: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 8px;
+    }
+
+    .grid {
+        gap: 12px;
+    }
+}

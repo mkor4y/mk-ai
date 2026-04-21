@@ -1,0 +1,167 @@
+.card {
+    background: linear-gradient(135deg, rgba(15, 22, 41, 0.9) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cardHeader h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.viewAllBtn {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #0ea5e9;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.viewAllBtn:hover {
+    color: #38bdf8;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Stock Item */
+.item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.item:hover {
+    background: rgba(14, 165, 233, 0.08);
+    border-color: rgba(14, 165, 233, 0.2);
+    transform: translateX(4px);
+}
+
+.leftSection {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.symbolBadge {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #0ea5e9;
+}
+
+.stockInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.symbol {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.name {
+    font-size: 0.75rem;
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.rightSection {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.price {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.changeBox {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.changeBox.up {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.changeBox.down {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.changeIcon {
+    font-size: 0.625rem;
+}
+
+.percent {
+    font-weight: 600;
+}
+
+/* Footer */
+.footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: center;
+}
+
+.updateTime {
+    font-size: 0.6875rem;
+    color: rgba(248, 250, 252, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card {
+        padding: 16px;
+    }
+
+    .item {
+        padding: 12px;
+    }
+
+    .symbolBadge {
+        width: 36px;
+        height: 36px;
+        font-size: 0.75rem;
+    }
+}

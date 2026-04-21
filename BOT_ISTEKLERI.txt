@@ -1,0 +1,50 @@
+🤖 BIST ANALİZ BOTU - KULLANICI İSTEKLERİ
+
+📋 BOT AMACI:
+- Sadece Borsa İstanbul (BIST) analizi yapacak
+
+🎯 ANA MENÜ TASARIMI:
+- Hisse Analizi
+- 💰 Fiyat Sorgula  
+- 📚 Eğitim
+- ❓ Yardım
+
+📊 MENÜ ÖZELLİKLERİ:
+- Tek menüde her şeyi toplayacağız
+- Hisse analizi genel çoğu şeyi tek menüde toplayacak
+- İstediğim hissenin fiyatını gösteren parametre
+- Eğitim ve yardım seçenekleri
+
+✅ HİSSE ANALİZİ İÇERİĞİ:
+- En üstte fiyat bilgisi
+- 24 saatlik değişim
+- Piyasa değeri
+- Hacım gibi bilgiler
+
+✅ TEKNİK ANALİZ:
+- RSI, MACD, MA, Bollinger Bands (yfinance + ta kütüphanesi)
+- Güven, risk, sinyal gücü hesaplamaları
+- Trading sinyalleri (AL/SAT/BEKLE)
+
+✅ AI ANALİZİ (EN SONDA):
+- AI bizim verdiğimiz verilerden beslenebilmeli
+- Fiyat, teknik göstergeler, sinyaller verilerini kullanarak yorum oluşturabilmeli
+- Haber analizi yapabilmeli (yeni çıkan haberleri değerlendiren)
+- Genel durum
+- Teknik göstergelerin durumu
+- Kısa vadeli beklenti
+- Orta vadeli beklenti
+- Uzun vadeli beklenti
+- Risk faktörleri
+- Öneriler
+
+✅ DESTEKLENEN HİSSELER:
+- Küçük liste (THYAO, GARAN, AKBNK, ASELS, KRDMD, TUPRS gibi)
+
+✅ VERİ KAYNAĞI:
+- yfinance kütüphanesi (API key gerektirmez, ücretsiz, sınırsız)
+
+📝 NOTLAR:
+- Adım adım sorarak ilerleniyor
+- Kullanıcı tercihleri kaydediliyor
+- Bot sadece BIST odaklı olacak

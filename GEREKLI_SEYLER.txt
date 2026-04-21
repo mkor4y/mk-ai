@@ -1,0 +1,70 @@
+TELEGRAM KRİPTO PARA ANALİZ BOTU - GEREKLİ ŞEYLER LİSTESİ
+============================================================
+
+1. API ANAHTARLARI VE HESAPLAR:
+   - Telegram Bot Token (BotFather'dan alınacak)
+   - OpenAI API Key (ChatGPT entegrasyonu için)
+   - Binance API Key ve Secret (opsiyonel - gerçek trading için)
+   - CoinGecko API (ücretsiz - kripto verileri için)
+
+2. PYTHON KÜTÜPHANELERİ:
+   - python-telegram-bot: Telegram bot API'si
+   - openai: ChatGPT entegrasyonu
+   - ccxt: Kripto borsa verileri
+   - pandas: Veri analizi
+   - numpy: Matematiksel işlemler
+   - ta: Teknik analiz göstergeleri
+   - matplotlib/plotly: Grafik oluşturma
+   - python-dotenv: Çevre değişkenleri
+
+3. BOT ÖZELLİKLERİ:
+   - Kripto para fiyat sorgulama
+   - Teknik analiz göstergeleri (RSI, MACD, MA, Bollinger Bands)
+   - ChatGPT ile analiz ve yorum
+   - Al/Sat/Bekle sinyalleri
+   - Fiyat alarmları
+   - Portföy takibi
+   - Market haberleri
+
+4. DOSYA YAPISI:
+   - main.py: Ana bot dosyası
+   - config.py: Konfigürasyon ayarları
+   - crypto_analyzer.py: Kripto analiz fonksiyonları
+   - chatgpt_helper.py: ChatGPT entegrasyonu
+   - database.py: Veritabanı işlemleri
+   - .env: API anahtarları
+   - requirements.txt: Gerekli kütüphaneler
+
+5. GÜVENLİK ÖNLEMLERİ:
+   - API anahtarlarını .env dosyasında saklama
+   - Rate limiting uygulama
+   - Kullanıcı doğrulama
+   - Hata yönetimi
+
+6. DEPLOYMENT:
+   - VPS veya cloud hosting
+   - SSL sertifikası
+   - Domain (opsiyonel)
+   - PM2 veya systemd ile process yönetimi
+
+7. MONİTORİNG:
+   - Log dosyaları
+   - Hata raporlama
+   - Performans takibi
+   - Kullanıcı istatistikleri
+
+8. YASAL UYARILAR:
+   - "Bu yatırım tavsiyesi değildir" uyarısı
+   - Risk uyarıları
+   - Kullanım şartları
+
+9. TEST:
+   - Unit testler
+   - Integration testler
+   - User acceptance testler
+
+10. DOKÜMANTASYON:
+    - README.md
+    - API dokümantasyonu
+    - Kullanıcı kılavuzu
+    - Kurulum talimatları

@@ -1,0 +1,31 @@
+{
+    "name": "MK AI - BIST Analiz Platformu",
+    "short_name": "MK AI",
+    "description": "Yapay zeka destekli BIST hisse analiz ve takip platformu.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#0f1629",
+    "theme_color": "#0ea5e9",
+    "orientation": "portrait",
+    "id": "/",
+    "icons": [
+        {
+            "src": "/images/logo-dark.png",
+            "sizes": "any",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/images/logo-dark.png",
+            "sizes": "any",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "categories": [
+        "finance",
+        "business"
+    ],
+    "prefer_related_applications": false
+}

@@ -1,0 +1,19 @@
+.env
+*.log
+__pycache__/
+venv/
+api/__pycache__/
+api/.python-version
+*.pyc
+.pytest_cache/
+.mypy_cache/
+node_modules/
+web/.next/
+electron/node_modules/
+electron/dist/
+
+# Large files
+MK_AI_Portable.zip
+
+# Data cache
+newsapi_*.json

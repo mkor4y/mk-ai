@@ -1,0 +1,552 @@
+.page {
+    display: flex;
+    min-height: 100vh;
+    background: #0a0e1a;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding-top: 60px;
+}
+
+.content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+/* Search Section */
+.searchSection {
+    margin-bottom: 32px;
+}
+
+.searchSection h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 8px;
+}
+
+.searchSection>p {
+    font-size: 1rem;
+    color: rgba(248, 250, 252, 0.6);
+    margin-bottom: 24px;
+}
+
+.searchBox {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.searchInput {
+    flex: 1;
+    max-width: 400px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #f8fafc;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+    border-color: rgba(56, 189, 248, 0.4);
+}
+
+.searchInput::placeholder {
+    color: rgba(248, 250, 252, 0.4);
+}
+
+.searchBtn {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.searchBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+}
+
+.searchBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.popularStocks {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.popularStocks>span {
+    font-size: 0.875rem;
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.stockTag {
+    padding: 6px 14px;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 6px;
+    color: #38bdf8;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stockTag:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: rgba(56, 189, 248, 0.4);
+}
+
+/* Results */
+.results {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Price Card */
+.priceCard {
+    background: #0f1629;
+    border: 1px solid rgba(56, 189, 248, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.priceHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.priceHeader h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.stockName {
+    font-size: 0.875rem;
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.priceInfo {
+    text-align: right;
+}
+
+.price {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.change {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.change.positive {
+    color: #10b981;
+}
+
+.change.negative {
+    color: #ef4444;
+}
+
+.priceStats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.priceStats>div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.priceStats span {
+    font-size: 0.75rem;
+    color: rgba(248, 250, 252, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priceStats strong {
+    font-size: 1.125rem;
+    color: #f8fafc;
+}
+
+/* Indicators Grid */
+.indicatorsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.indicatorCard {
+    background: #0f1629;
+    border: 1px solid rgba(56, 189, 248, 0.1);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.indicatorHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.indicatorIcon {
+    font-size: 1.25rem;
+}
+
+.indicatorHeader h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.indicatorValue {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.bigValue {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.indicatorStatus {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* RSI Bar */
+.rsiBar {
+    margin-top: 12px;
+}
+
+.rsiZones {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6875rem;
+    color: rgba(248, 250, 252, 0.4);
+    margin-bottom: 6px;
+}
+
+.rsiTrack {
+    height: 8px;
+    background: linear-gradient(90deg, #10b981 0%, #10b981 30%, #f59e0b 30%, #f59e0b 70%, #ef4444 70%, #ef4444 100%);
+    border-radius: 4px;
+    position: relative;
+}
+
+.rsiIndicator {
+    position: absolute;
+    top: -4px;
+    width: 16px;
+    height: 16px;
+    background: #f8fafc;
+    border: 2px solid #0f1629;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* MACD */
+.macdValues {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.macdValues>div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.macdValues span {
+    font-size: 0.6875rem;
+    color: rgba(248, 250, 252, 0.5);
+    text-transform: uppercase;
+}
+
+.macdValues strong {
+    font-size: 1.125rem;
+}
+
+.macdSignal {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.bullish {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.bearish {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* Moving Averages */
+.maList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.maItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+}
+
+.maItem span {
+    font-size: 0.875rem;
+    color: rgba(248, 250, 252, 0.7);
+}
+
+.maItem strong {
+    font-size: 1rem;
+}
+
+.aboveMa {
+    color: #10b981;
+}
+
+.belowMa {
+    color: #ef4444;
+}
+
+/* Signals */
+.signalsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.signalItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+}
+
+.signalItem span:first-child {
+    font-size: 0.875rem;
+    color: rgba(248, 250, 252, 0.7);
+}
+
+.signalBuy {
+    padding: 4px 10px;
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.signalSell {
+    padding: 4px 10px;
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.signalNeutral {
+    padding: 4px 10px;
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.neutral {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.errorMessage {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    color: #f87171;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* AI Card */
+.aiCard {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(16, 185, 129, 0.08));
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.aiHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.aiHeader span {
+    font-size: 1.5rem;
+}
+
+.aiHeader h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.aiContent {
+    min-height: 60px;
+}
+
+.aiContent p {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: rgba(248, 250, 252, 0.9);
+}
+
+.aiLoading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(248, 250, 252, 0.6);
+}
+
+.aiPlaceholder {
+    color: rgba(248, 250, 252, 0.4);
+    font-style: italic;
+}
+
+.aiDisclaimer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.75rem;
+    color: rgba(245, 158, 11, 0.8);
+}
+
+/* Empty & Loading States */
+.emptyState,
+.loadingState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+}
+
+.emptyIcon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.emptyState h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #f8fafc;
+    margin-bottom: 8px;
+}
+
+.emptyState p,
+.loadingState p {
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(56, 189, 248, 0.2);
+    border-top-color: #38bdf8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .indicatorsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 20px;
+    }
+
+    .searchBox {
+        flex-direction: column;
+    }
+
+    .searchInput {
+        max-width: none;
+    }
+
+    .priceHeader {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .priceInfo {
+        text-align: left;
+    }
+
+    .priceStats {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}

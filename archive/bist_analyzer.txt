@@ -1,0 +1,312 @@
+import pandas as pd
+import numpy as np
+import requests
+import ta
+from datetime import datetime, timedelta
+import logging
+from config import Config
+
+class BISTAnalyzer:
+    def __init__(self):
+        self.config = Config()
+        self.logger = logging.getLogger(__name__)
+    
+    def get_stock_data(self, symbol, days=30):
+        """RapidAPI Yahoo Finance'den BIST hisse verilerini al"""
+        try:
+            # BIST hisse kodunu .IS uzantısı ile al
+            if not symbol.endswith('.IS'):
+                symbol = f"{symbol}.IS"
+            
+            # RapidAPI Yahoo Finance endpoint
+            url = f"{self.config.RAPIDAPI_YAHOO_URL}/stock/v3/get-chart"
+            headers = {
+                "X-RapidAPI-Key": self.config.RAPIDAPI_KEY,
+                "X-RapidAPI-Host": self.config.RAPIDAPI_YAHOO_HOST
+            }
+            params = {
+                "interval": "1d",
+                "symbol": symbol,
+                "range": f"{days}d",
+                "region": "TR",
+                "includePrePost": "false",
+                "useYfid": "true",
+                "includeAdjustedClose": "true",
+                "events": "div,split"
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            if 'chart' not in data or 'result' not in data['chart'] or len(data['chart']['result']) == 0:
+                self.logger.error(f"Veri bulunamadı: {symbol}")
+                return None
+            
+            result = data['chart']['result'][0]
+            timestamps = result['timestamp']
+            quotes = result['indicators']['quote'][0]
+            
+            # DataFrame oluştur
+            df = pd.DataFrame({
+                'timestamp': pd.to_datetime(timestamps, unit='s'),
+                'open': quotes['open'],
+                'high': quotes['high'],
+                'low': quotes['low'],
+                'close': quotes['close'],
+                'volume': quotes['volume']
+            })
+            
+            # NaN değerleri temizle
+            df = df.dropna()
+            
+            if df.empty:
+                self.logger.error(f"Veri bulunamadı: {symbol}")
+                return None
+            
+            # Fiyat sütunu ekle
+            df['price'] = df['close']
+            
+            return df
+            
+        except Exception as e:
+            self.logger.error(f"BIST veri alma hatası: {e}")
+            return None
+    
+    def calculate_technical_indicators(self, df):
+        """Teknik analiz göstergelerini hesapla"""
+        try:
+            # RSI
+            df['rsi'] = ta.momentum.RSIIndicator(df['price'], window=self.config.RSI_PERIOD).rsi()
+            
+            # MACD
+            macd = ta.trend.MACD(df['price'], 
+                                window_fast=self.config.MACD_FAST,
+                                window_slow=self.config.MACD_SLOW,
+                                window_sign=self.config.MACD_SIGNAL)
+            df['macd'] = macd.macd()
+            df['macd_signal'] = macd.macd_signal()
+            df['macd_histogram'] = macd.macd_diff()
+            
+            # Moving Averages
+            for period in self.config.MA_PERIODS:
+                df[f'ma_{period}'] = ta.trend.SMAIndicator(df['price'], window=period).sma_indicator()
+            
+            # Bollinger Bands
+            bb = ta.volatility.BollingerBands(df['price'], 
+                                            window=self.config.BOLLINGER_PERIOD,
+                                            window_dev=self.config.BOLLINGER_STD)
+            df['bb_upper'] = bb.bollinger_hband()
+            df['bb_middle'] = bb.bollinger_mavg()
+            df['bb_lower'] = bb.bollinger_lband()
+            
+            # Volume indicators
+            df['volume_sma'] = df['volume'].rolling(20).mean()
+            df['volume_ratio'] = df['volume'] / df['volume_sma']
+            
+            return df
+            
+        except Exception as e:
+            self.logger.error(f"BIST teknik analiz hatası: {e}")
+            return df
+    
+    def generate_trading_signals(self, df):
+        """Trading sinyalleri oluştur"""
+        signals = {
+            'rsi_signal': 'NÖTR',
+            'macd_signal': 'NÖTR',
+            'ma_signal': 'NÖTR',
+            'bb_signal': 'NÖTR',
+            'volume_signal': 'NÖTR',
+            'overall_signal': 'NÖTR',
+            'confidence': 0
+        }
+        
+        try:
+            if len(df) < 50:
+                return signals
+            
+            current = df.iloc[-1]
+            prev = df.iloc[-2]
+            
+            # RSI Sinyali
+            if current['rsi'] < self.config.RSI_OVERSOLD:
+                signals['rsi_signal'] = 'AL'
+            elif current['rsi'] > self.config.RSI_OVERBOUGHT:
+                signals['rsi_signal'] = 'SAT'
+            
+            # MACD Sinyali
+            if current['macd'] > current['macd_signal'] and prev['macd'] <= prev['macd_signal']:
+                signals['macd_signal'] = 'AL'
+            elif current['macd'] < current['macd_signal'] and prev['macd'] >= prev['macd_signal']:
+                signals['macd_signal'] = 'SAT'
+            
+            # Moving Average Sinyali
+            ma_20 = current['ma_20']
+            ma_50 = current['ma_50']
+            price = current['price']
+            
+            if price > ma_20 > ma_50:
+                signals['ma_signal'] = 'AL'
+            elif price < ma_20 < ma_50:
+                signals['ma_signal'] = 'SAT'
+            
+            # Bollinger Bands Sinyali
+            if price < current['bb_lower']:
+                signals['bb_signal'] = 'AL'
+            elif price > current['bb_upper']:
+                signals['bb_signal'] = 'SAT'
+            
+            # Volume Sinyali
+            if current['volume_ratio'] > self.config.VOLUME_THRESHOLD:
+                signals['volume_signal'] = 'YÜKSEK_HACİM'
+            
+            # Genel Sinyal
+            buy_signals = sum(1 for signal in signals.values() if signal == 'AL')
+            sell_signals = sum(1 for signal in signals.values() if signal == 'SAT')
+            
+            if buy_signals > sell_signals:
+                signals['overall_signal'] = 'AL'
+                signals['confidence'] = min(buy_signals * 25, 100)
+            elif sell_signals > buy_signals:
+                signals['overall_signal'] = 'SAT'
+                signals['confidence'] = min(sell_signals * 25, 100)
+            else:
+                signals['overall_signal'] = 'BEKLE'
+                signals['confidence'] = 50
+            
+            return signals
+            
+        except Exception as e:
+            self.logger.error(f"BIST sinyal oluşturma hatası: {e}")
+            return signals
+    
+    def get_stock_info(self, symbol):
+        """Hisse bilgilerini al"""
+        try:
+            if not symbol.endswith('.IS'):
+                symbol = f"{symbol}.IS"
+            
+            # RapidAPI Yahoo Finance endpoint
+            url = f"{self.config.RAPIDAPI_YAHOO_URL}/stock/v3/get-quote"
+            headers = {
+                "X-RapidAPI-Key": self.config.RAPIDAPI_KEY,
+                "X-RapidAPI-Host": self.config.RAPIDAPI_YAHOO_HOST
+            }
+            params = {
+                "symbol": symbol
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            if 'quoteSummary' not in data or 'result' not in data['quoteSummary'] or len(data['quoteSummary']['result']) == 0:
+                return None
+            
+            result = data['quoteSummary']['result'][0]
+            
+            # Fiyat bilgilerini al
+            current_price = result['price']['regularMarketPrice']['raw']
+            prev_price = result['price']['regularMarketPreviousClose']['raw']
+            price_change = ((current_price - prev_price) / prev_price) * 100
+            
+            return {
+                'name': result.get('longName', symbol.replace('.IS', '')),
+                'symbol': symbol.replace('.IS', '').upper(),
+                'current_price': current_price,
+                'price_change_24h': price_change,
+                'volume_24h': result.get('volume', 0),
+                'market_cap': result.get('marketCap', 0),
+                'pe_ratio': result.get('trailingPE', 0),
+                'dividend_yield': result.get('dividendYield', 0),
+                'high_52w': result.get('fiftyTwoWeekHigh', 0),
+                'low_52w': result.get('fiftyTwoWeekLow', 0)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"BIST hisse bilgisi alma hatası: {e}")
+            return None
+    
+    def get_market_summary(self):
+        """BIST piyasa özeti al"""
+        try:
+            summary_data = []
+            
+            for stock in self.config.SUPPORTED_BIST_STOCKS[:5]:  # İlk 5 hisse
+                stock_info = self.get_stock_info(stock)
+                if stock_info:
+                    summary_data.append(stock_info)
+            
+            if not summary_data:
+                return "❌ BIST verisi alınamadı."
+            
+            # Özet mesajını oluştur
+            summary_message = "📊 **BIST Piyasa Özeti**\n\n"
+            
+            for data in summary_data:
+                change_emoji = "📈" if data['price_change_24h'] > 0 else "📉"
+                summary_message += f"{change_emoji} **{data['symbol']}:** ₺{data['current_price']:,.2f} ({data['price_change_24h']:+.2f}%)\n"
+            
+            summary_message += f"\n📈 **Toplam Hisse:** {len(summary_data)}\n"
+            summary_message += f"📊 **Güncelleme:** {datetime.now().strftime('%H:%M:%S')}\n\n"
+            
+            # Risk uyarısı
+            summary_message += self.config.RISK_WARNING
+            
+            return summary_message
+            
+        except Exception as e:
+            self.logger.error(f"BIST piyasa özeti hatası: {e}")
+            return "❌ BIST piyasa özeti oluşturulurken hata oluştu."
+    
+    def format_analysis_message(self, symbol, df, signals, stock_info):
+        """BIST analiz mesajını formatla"""
+        try:
+            current = df.iloc[-1]
+            
+            message = f"🔍 **{stock_info['name']} ({stock_info['symbol']}) BIST Analizi**\n\n"
+            
+            # Fiyat bilgileri
+            message += f"💰 **Güncel Fiyat:** ₺{current['price']:,.2f}\n"
+            message += f"📈 **24s Değişim:** {stock_info['price_change_24h']:.2f}%\n"
+            message += f"📊 **Hacim:** {stock_info['volume_24h']:,.0f}\n"
+            message += f"📈 **P/E Oranı:** {stock_info['pe_ratio']:.2f}\n\n"
+            
+            # Teknik göstergeler
+            message += "📊 **Teknik Göstergeler:**\n"
+            message += f"• RSI: {current['rsi']:.1f}\n"
+            message += f"• MACD: {current['macd']:.4f}\n"
+            message += f"• MA20: ₺{current['ma_20']:.2f}\n"
+            message += f"• MA50: ₺{current['ma_50']:.2f}\n\n"
+            
+            # Trading sinyalleri
+            message += "🎯 **Trading Sinyalleri:**\n"
+            message += f"• RSI: {signals['rsi_signal']} ({current['rsi']:.1f})\n"
+            message += f"• MACD: {signals['macd_signal']} ({current['macd']:.2f})\n"
+            message += f"• MA: {signals['ma_signal']} ({current['ma_20']:.2f})\n"
+            message += f"• BB: {signals['bb_signal']} (Üst: {current['bb_upper']:.2f}, Alt: {current['bb_lower']:.2f})\n"
+            message += f"• Hacim: {signals['volume_signal']} ({current['volume_ratio']:.2f})\n"
+            message += f"• Trend: {signals['trend_signal']} ({current.get('trend', 0.0):.2f})\n"
+            message += f"• Momentum: {signals['momentum_signal']} ({current.get('momentum', 0.0):.2f})\n"
+            message += f"• Destek/Direnç: {signals['support_resistance_signal']} ({current.get('support_resistance', 0.0):.2f})\n\n"
+            
+            # Genel sinyal
+            signal_emoji = {
+                'AL': '🟢',
+                'SAT': '🔴',
+                'BEKLE': '🟡',
+                'NÖTR': '⚪'
+            }
+            
+            message += f"🎯 **GENEL SİNYAL:** {signal_emoji.get(signals['overall_signal'], '⚪')} {signals['overall_signal']}\n"
+            message += f"📊 **Güven:** {signals['confidence']}%\n\n"
+            
+            # Risk uyarısı
+            message += self.config.RISK_WARNING
+            
+            return message
+            
+        except Exception as e:
+            self.logger.error(f"BIST mesaj formatlama hatası: {e}")
+            return "❌ BIST analizi oluşturulurken hata oluştu."

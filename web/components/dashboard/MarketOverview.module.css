@@ -1,0 +1,72 @@
+.card {
+    background: #0f1629;
+    border: 1px solid rgba(56, 189, 248, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.cardHeader h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.live {
+    font-size: 0.75rem;
+    color: #10b981;
+    font-weight: 500;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+
+.itemName {
+    font-size: 0.75rem;
+    color: rgba(248, 250, 252, 0.5);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.itemValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 4px;
+}
+
+.itemChange {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.up {
+    color: #10b981;
+}
+
+.down {
+    color: #ef4444;
+}
+
+@media (max-width: 992px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

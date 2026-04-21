@@ -1,0 +1,85 @@
+import os
+from dotenv import load_dotenv
+
+# .env dosyasını yükle
+load_dotenv()
+
+class Config:
+    # Telegram Bot Token
+    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+    
+    # OpenAI API Key
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    
+    # Binance API (opsiyonel)
+    BINANCE_API_KEY = os.getenv('BINANCE_API_KEY')
+    BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY')
+    
+    # CoinGecko API (ücretsiz)
+    COINGECKO_API_URL = "https://api.coingecko.com/api/v3"
+    
+    # Bot ayarları
+    MAX_MESSAGE_LENGTH = 4096
+    RATE_LIMIT_PER_MINUTE = 30
+    
+    # Teknik analiz ayarları
+    RSI_PERIOD = 14
+    MACD_FAST = 12
+    MACD_SLOW = 26
+    MACD_SIGNAL = 9
+    MA_PERIODS = [20, 50, 200]
+    BOLLINGER_PERIOD = 20
+    BOLLINGER_STD = 2
+    
+    # ChatGPT ayarları
+    CHATGPT_MODEL = "gpt-3.5-turbo"
+    CHATGPT_MAX_TOKENS = 1000
+    CHATGPT_TEMPERATURE = 0.7
+    
+    # Veritabanı ayarları
+    DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///crypto_bot.db')
+    
+    # Log ayarları
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+    LOG_FILE = 'crypto_bot.log'
+    
+    # Zaman dilimi
+    TIMEZONE = 'Europe/Istanbul'
+    
+    # Desteklenen kripto paralar
+    SUPPORTED_COINS = [
+        'bitcoin', 'ethereum', 'binancecoin', 'cardano', 'solana',
+        'ripple', 'polkadot', 'dogecoin', 'avalanche', 'polygon'
+    ]
+    
+    # Desteklenen BIST hisseleri
+    SUPPORTED_BIST_STOCKS = [
+        'THYAO', 'GARAN', 'AKBNK', 'ASELS', 'KRDMD', 'TUPRS', 'EREGL', 
+        'SASA', 'BIMAS', 'AKSA', 'KCHOL', 'PGSUS', 'SAHOL', 'TAVHL', 'VESTL'
+    ]
+    
+    # Trading sinyalleri için eşik değerleri
+    RSI_OVERSOLD = 30
+    RSI_OVERBOUGHT = 70
+    VOLUME_THRESHOLD = 1.5  # Ortalama hacmin 1.5 katı
+    
+    # Risk uyarısı mesajı
+    RISK_WARNING = """
+⚠️ RİSK UYARISI ⚠️
+
+Bu bot sadece bilgilendirme amaçlıdır ve yatırım tavsiyesi değildir.
+Kripto para yatırımları yüksek risk taşır ve sermayenizi kaybedebilirsiniz.
+Her zaman kendi araştırmanızı yapın ve risk yönetimi uygulayın.
+    """
+
+    # DeepSeek API
+    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', 'sk-15ff707c7cf8402db94816f14c640baa')
+    DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+    DEEPSEEK_MODEL = "deepseek-chat"
+
+    # OpenRouter (DeepSeek) API
+    OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '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')
+    OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+    OPENROUTER_MODEL = "deepseek/deepseek-chat"
+
+  

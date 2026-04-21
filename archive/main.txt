@@ -1,0 +1,649 @@
+import logging
+import asyncio
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+from config import Config
+from crypto_analyzer import CryptoAnalyzer
+from bist_analyzer import BISTAnalyzer
+from chatgpt_helper import ChatGPTHelper
+import json
+from datetime import datetime
+import pytz
+
+# Loglama ayarları
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO,
+    filename=Config().LOG_FILE
+)
+logger = logging.getLogger(__name__)
+
+class CryptoBot:
+    def __init__(self):
+        self.config = Config()
+        self.crypto_analyzer = CryptoAnalyzer()
+        self.bist_analyzer = BISTAnalyzer()
+        self.chatgpt = ChatGPTHelper()
+        self.user_sessions = {}  # Kullanıcı oturumları
+    
+    def safe_html_message(self, message):
+        """Markdown mesajını güvenli HTML'e çevir"""
+        if not message:
+            return ""
+        
+        # Markdown'ı HTML'e çevir
+        html_message = message.replace('**', '<b>').replace('**', '</b>')
+        html_message = html_message.replace('*', '<i>').replace('*', '</i>')
+        html_message = html_message.replace('`', '<code>').replace('`', '</code>')
+        html_message = html_message.replace('\n', '<br>')
+        
+        # Özel karakterleri escape et
+        html_message = html_message.replace('&', '&amp;')
+        html_message = html_message.replace('<', '&lt;').replace('>', '&gt;')
+        
+        return html_message
+        
+    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Bot başlatma komutu"""
+        welcome_message = """
+🤖 **Hibrit Analiz Botu'na Hoş Geldiniz!**
+
+Bu bot size hem kripto para hem de BIST hisse analizleri, teknik göstergeler ve AI destekli yorumlar sunar.
+
+📋 **Kripto Para Komutları:**
+/analyze <coin> - Kripto para analizi
+/price <coin> - Kripto fiyat bilgisi
+/signals <coin> - Kripto trading sinyalleri
+/ai_analysis <coin> - Kripto AI analizi
+
+📊 **BIST Komutları:**
+/analyze_bist <hisse> - BIST hisse analizi
+/price_bist <hisse> - BIST fiyat bilgisi
+/signals_bist <hisse> - BIST trading sinyalleri
+/ai_analysis_bist <hisse> - BIST AI analizi
+
+📈 **Genel Komutlar:**
+/market_summary - Kripto piyasa özeti
+/market_summary_bist - BIST piyasa özeti
+/education <topic> - Eğitici içerik
+/help - Yardım menüsü
+
+⚠️ **Önemli:** Bu bot sadece bilgilendirme amaçlıdır ve yatırım tavsiyesi değildir.
+
+Hangi analiz türünü seçmek istiyorsunuz?
+        """
+        
+        keyboard = [
+            [InlineKeyboardButton("🪙 Kripto Para", callback_data="menu_crypto")],
+            [InlineKeyboardButton("📊 BIST Hisse", callback_data="menu_bist")],
+            [InlineKeyboardButton("📚 Eğitim", callback_data="menu_education")],
+            [InlineKeyboardButton("❓ Yardım", callback_data="menu_help")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+    
+    async def get_crypto_analysis_data(self, coin_id, days=30):
+        """Kripto için veri, teknik analiz, sinyal ve market_data döndürür"""
+        df = self.crypto_analyzer.get_crypto_data(coin_id, days=days)
+        if df is None:
+            return None, None, None, "❌ {0} için veri bulunamadı.".format(coin_id)
+        df = self.crypto_analyzer.calculate_technical_indicators(df)
+        if df is None:
+            return None, None, None, "❌ {0} için teknik analiz yapılamadı.".format(coin_id)
+        signals = self.crypto_analyzer.generate_trading_signals(df)
+        if not signals:
+            return None, None, None, "❌ {0} için sinyal üretilemedi.".format(coin_id)
+        market_data = self.crypto_analyzer.get_market_summary(coin_id)
+        if market_data is None:
+            return None, None, None, "❌ {0} için piyasa verisi bulunamadı.".format(coin_id)
+        return df, signals, market_data, None
+
+    async def analyze_coin(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        try:
+            if context.args:
+                coin_id = context.args[0].lower()
+            else:
+                await update.message.reply_text("❌ Lütfen bir kripto para adı girin.\nÖrnek: /analyze bitcoin")
+                return
+            status_message = await update.message.reply_text("🔍 Analiz yapılıyor...")
+            df, signals, market_data, error = await self.get_crypto_analysis_data(coin_id)
+            if error:
+                await status_message.edit_text(error)
+                return
+            analysis_message = self.crypto_analyzer.format_analysis_message(coin_id, df, signals, market_data)
+            ai_analysis = self.chatgpt.get_ai_analysis(market_data['name'], df, market_data, signals)
+            full_message = analysis_message + "\n\n🤖 **AI Analizi:**\n" + ai_analysis
+            await status_message.edit_text(full_message, parse_mode='HTML')
+        except Exception as e:
+            logger.error(f"Analiz hatası: {e}")
+            await update.message.reply_text("❌ Analiz sırasında hata oluştu.")
+
+    async def get_price(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        try:
+            if not context.args:
+                await update.message.reply_text("❌ Lütfen bir kripto para adı girin.\nÖrnek: /price bitcoin")
+                return
+            coin_id = context.args[0].lower()
+            _, _, market_data, error = await self.get_crypto_analysis_data(coin_id)
+            if error:
+                await update.message.reply_text(error)
+                return
+            price_message = f"""
+💰 **{market_data['name']} ({market_data['symbol']}) Fiyat Bilgisi**
+
+💵 **Güncel Fiyat:** ${market_data['current_price']:,.2f}
+📈 **24s Değişim:** {market_data['price_change_24h']:.2f}%
+📊 **Piyasa Değeri:** ${market_data['market_cap']:,.0f}
+📈 **24s Hacim:** ${market_data['volume_24h']:,.0f}
+
+🏆 **En Yüksek:** ${market_data['ath']:,.2f} ({market_data['ath_change_percentage']:.2f}%)
+📉 **En Düşük:** ${market_data['atl']:,.2f} ({market_data['atl_change_percentage']:.2f}%)
+            """
+            await update.message.reply_text(price_message, parse_mode='Markdown')
+        except Exception as e:
+            logger.error(f"Fiyat sorgulama hatası: {e}")
+            await update.message.reply_text("❌ Fiyat bilgisi alınırken hata oluştu.")
+
+    async def get_signals(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        try:
+            if not context.args:
+                await update.message.reply_text("❌ Lütfen bir kripto para adı girin.\nÖrnek: /signals bitcoin")
+                return
+            coin_id = context.args[0].lower()
+            status_message = await update.message.reply_text("🎯 Sinyaller hesaplanıyor...")
+            _, signals, market_data, error = await self.get_crypto_analysis_data(coin_id)
+            if error:
+                await status_message.edit_text(error)
+                return
+            signal_emoji = {
+                'AL': '🟢',
+                'SAT': '🔴',
+                'BEKLE': '🟡',
+                'NÖTR': '⚪',
+                'YÜKSEK_HACİM': '📈'
+            }
+            signals_message = f"""
+🎯 **{market_data['name']} ({market_data['symbol']}) Trading Sinyalleri**
+
+💰 **Güncel Fiyat:** ${market_data['current_price']:,.2f}
+
+📊 **Teknik Sinyaller:**
+• RSI: {signal_emoji.get(signals['rsi_signal'], '⚪')} {signals['rsi_signal']}
+• MACD: {signal_emoji.get(signals['macd_signal'], '⚪')} {signals['macd_signal']}
+• Moving Average: {signal_emoji.get(signals['ma_signal'], '⚪')} {signals['ma_signal']}
+• Bollinger Bands: {signal_emoji.get(signals['bb_signal'], '⚪')} {signals['bb_signal']}
+• Hacim: {signal_emoji.get(signals['volume_signal'], '⚪')} {signals['volume_signal']}
+
+🎯 **GENEL SİNYAL:** {signal_emoji.get(signals['overall_signal'], '⚪')} {signals['overall_signal']}
+📊 **Güven Oranı:** {signals['confidence']}%
+
+⚠️ Bu sinyaller sadece bilgilendirme amaçlıdır.
+            """
+            await status_message.edit_text(signals_message, parse_mode='Markdown')
+        except Exception as e:
+            logger.error(f"Sinyal hatası: {e}")
+            await update.message.reply_text("❌ Sinyaller hesaplanırken hata oluştu.")
+
+    async def ai_analysis(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        try:
+            if not context.args:
+                await update.message.reply_text("❌ Lütfen bir kripto para adı girin.\nÖrnek: /ai_analysis bitcoin")
+                return
+            coin_id = context.args[0].lower()
+            status_message = await update.message.reply_text("🤖 AI analizi yapılıyor...")
+            df, signals, market_data, error = await self.get_crypto_analysis_data(coin_id)
+            if error:
+                await status_message.edit_text(error)
+                return
+            ai_analysis = self.chatgpt.get_ai_analysis(market_data['name'], df, market_data, signals)
+            ai_message = f"""
+🤖 **{market_data['name']} ({market_data['symbol']}) AI Analizi**
+
+{ai_analysis}
+
+💰 **Güncel Fiyat:** ${market_data['current_price']:,.2f}
+📈 **24s Değişim:** {market_data['price_change_24h']:.2f}%
+🎯 **Genel Sinyal:** {signals['overall_signal']}
+📊 **Güven:** {signals['confidence']}%
+            """
+            await status_message.edit_text(ai_message, parse_mode='Markdown')
+        except Exception as e:
+            logger.error(f"AI analiz hatası: {e}")
+            await update.message.reply_text("❌ AI analizi yapılırken hata oluştu.")
+    
+    async def market_summary(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Piyasa özeti"""
+        try:
+            status_message = await update.message.reply_text("📊 Piyasa özeti hazırlanıyor...")
+            
+            # Desteklenen coinlerin özetini al
+            summary_data = []
+            for coin_id in self.config.SUPPORTED_COINS[:5]:  # İlk 5 coin
+                market_data = self.crypto_analyzer.get_market_summary(coin_id)
+                if market_data:
+                    summary_data.append(market_data)
+            
+            if not summary_data:
+                await status_message.edit_text("❌ Piyasa verisi alınamadı.")
+                return
+            
+            # Özet mesajını oluştur
+            summary_message = "📊 **Piyasa Özeti**\n\n"
+            
+            for data in summary_data:
+                change_emoji = "📈" if data['price_change_24h'] > 0 else "📉"
+                summary_message += f"{change_emoji} **{data['symbol']}:** ${data['current_price']:,.2f} ({data['price_change_24h']:+.2f}%)\n"
+            
+            # AI piyasa duyarlılığı
+            coin_names = [data['name'] for data in summary_data]
+            sentiment = self.chatgpt.get_market_sentiment(coin_names)
+            
+            summary_message += f"\n🤖 **AI Piyasa Değerlendirmesi:**\n{sentiment}"
+            
+            await status_message.edit_text(summary_message, parse_mode='Markdown')
+            
+        except Exception as e:
+            logger.error(f"Piyasa özeti hatası: {e}")
+            await update.message.reply_text("❌ Piyasa özeti oluşturulurken hata oluştu.")
+    
+    async def education(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Eğitici içerik"""
+        try:
+            if not context.args:
+                topics = """
+📚 **Eğitici İçerik Konuları:**
+
+/education rsi - RSI göstergesi
+/education macd - MACD göstergesi
+/education bollinger - Bollinger Bands
+/education volume - Hacim analizi
+/education risk - Risk yönetimi
+/education technical - Teknik analiz temelleri
+                """
+                await update.message.reply_text(topics, parse_mode='Markdown')
+                return
+            
+            topic = context.args[0].lower()
+            status_message = await update.message.reply_text("📚 Eğitici içerik hazırlanıyor...")
+            
+            content = self.chatgpt.get_educational_content(topic)
+            await status_message.edit_text(content, parse_mode='Markdown')
+            
+        except Exception as e:
+            logger.error(f"Eğitici içerik hatası: {e}")
+            await update.message.reply_text("❌ Eğitici içerik oluşturulurken hata oluştu.")
+    
+    # BIST Analiz Fonksiyonları
+    async def analyze_bist(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """BIST hisse analizi"""
+        try:
+            if not context.args:
+                await update.message.reply_text("❌ Lütfen bir hisse kodu girin.\nÖrnek: /analyze_bist THYAO")
+                return
+            
+            symbol = context.args[0].upper()
+            status_message = await update.message.reply_text("🔍 BIST analizi yapılıyor...")
+            
+            # Veri al ve analiz et
+            df = self.bist_analyzer.get_stock_data(symbol, days=30)
+            if df is None:
+                await status_message.edit_text(f"❌ {symbol} için veri bulunamadı.")
+                return
+            
+            # Teknik analiz yap
+            df = self.bist_analyzer.calculate_technical_indicators(df)
+            signals = self.bist_analyzer.generate_trading_signals(df)
+            stock_info = self.bist_analyzer.get_stock_info(symbol)
+            
+            if stock_info is None:
+                await status_message.edit_text(f"❌ {symbol} için hisse bilgisi bulunamadı.")
+                return
+            
+            # Analiz mesajını oluştur
+            analysis_message = self.bist_analyzer.format_analysis_message(symbol, df, signals, stock_info)
+            
+            # AI analizi ekle
+            ai_analysis = self.chatgpt.get_ai_analysis(
+                stock_info['name'], df, stock_info, signals
+            )
+            
+            full_message = analysis_message + "\n\n🤖 **AI Analizi:**\n" + ai_analysis
+            
+            await status_message.edit_text(full_message, parse_mode='HTML')
+            
+        except Exception as e:
+            logger.error(f"BIST analiz hatası: {e}")
+            await update.message.reply_text("❌ BIST analizi sırasında hata oluştu.")
+    
+    async def get_price_bist(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """BIST hisse fiyat bilgisi"""
+        try:
+            if not context.args:
+                await update.message.reply_text("❌ Lütfen bir hisse kodu girin.\nÖrnek: /price_bist THYAO")
+                return
+            
+            symbol = context.args[0].upper()
+            stock_info = self.bist_analyzer.get_stock_info(symbol)
+            
+            if stock_info is None:
+                await update.message.reply_text(f"❌ {symbol} için fiyat bilgisi bulunamadı.")
+                return
+            
+            price_message = f"""
+💰 **{stock_info['name']} ({stock_info['symbol']}) BIST Fiyat Bilgisi**
+
+💵 **Güncel Fiyat:** ₺{stock_info['current_price']:,.2f}
+📈 **24s Değişim:** {stock_info['price_change_24h']:.2f}%
+📊 **Hacim:** {stock_info['volume_24h']:,.0f}
+📈 **P/E Oranı:** {stock_info['pe_ratio']:.2f}
+
+🏆 **52 Hafta En Yüksek:** ₺{stock_info['high_52w']:,.2f}
+📉 **52 Hafta En Düşük:** ₺{stock_info['low_52w']:,.2f}
+            """
+            
+            await update.message.reply_text(price_message, parse_mode='Markdown')
+            
+        except Exception as e:
+            logger.error(f"BIST fiyat sorgulama hatası: {e}")
+            await update.message.reply_text("❌ BIST fiyat bilgisi alınırken hata oluştu.")
+    
+    async def get_signals_bist(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """BIST trading sinyalleri"""
+        try:
+            if not context.args:
+                await update.message.reply_text("❌ Lütfen bir hisse kodu girin.\nÖrnek: /signals_bist THYAO")
+                return
+            
+            symbol = context.args[0].upper()
+            status_message = await update.message.reply_text("🎯 BIST sinyalleri hesaplanıyor...")
+            
+            # Veri al ve sinyalleri hesapla
+            df = self.bist_analyzer.get_stock_data(symbol, days=30)
+            if df is None:
+                await status_message.edit_text(f"❌ {symbol} için veri bulunamadı.")
+                return
+            
+            df = self.bist_analyzer.calculate_technical_indicators(df)
+            signals = self.bist_analyzer.generate_trading_signals(df)
+            stock_info = self.bist_analyzer.get_stock_info(symbol)
+            
+            if stock_info is None:
+                await status_message.edit_text(f"❌ {symbol} için hisse bilgisi bulunamadı.")
+                return
+            
+            # Sinyal mesajını oluştur
+            signal_emoji = {
+                'AL': '🟢',
+                'SAT': '🔴',
+                'BEKLE': '🟡',
+                'NÖTR': '⚪',
+                'YÜKSEK_HACİM': '📈'
+            }
+            
+            signals_message = f"""
+🎯 **{stock_info['name']} ({stock_info['symbol']}) BIST Trading Sinyalleri**
+
+💰 **Güncel Fiyat:** ₺{stock_info['current_price']:,.2f}
+
+📊 **Teknik Sinyaller:**
+• RSI: {signal_emoji.get(signals['rsi_signal'], '⚪')} {signals['rsi_signal']}
+• MACD: {signal_emoji.get(signals['macd_signal'], '⚪')} {signals['macd_signal']}
+• Moving Average: {signal_emoji.get(signals['ma_signal'], '⚪')} {signals['ma_signal']}
+• Bollinger Bands: {signal_emoji.get(signals['bb_signal'], '⚪')} {signals['bb_signal']}
+• Hacim: {signal_emoji.get(signals['volume_signal'], '⚪')} {signals['volume_signal']}
+
+🎯 **GENEL SİNYAL:** {signal_emoji.get(signals['overall_signal'], '⚪')} {signals['overall_signal']}
+📊 **Güven Oranı:** {signals['confidence']}%
+
+⚠️ Bu sinyaller sadece bilgilendirme amaçlıdır.
+            """
+            
+            await status_message.edit_text(signals_message, parse_mode='Markdown')
+            
+        except Exception as e:
+            logger.error(f"BIST sinyal hatası: {e}")
+            await update.message.reply_text("❌ BIST sinyalleri hesaplanırken hata oluştu.")
+    
+    async def ai_analysis_bist(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """BIST AI destekli analiz"""
+        try:
+            if not context.args:
+                await update.message.reply_text("❌ Lütfen bir hisse kodu girin.\nÖrnek: /ai_analysis_bist THYAO")
+                return
+            
+            symbol = context.args[0].upper()
+            status_message = await update.message.reply_text("🤖 BIST AI analizi yapılıyor...")
+            
+            # Veri al
+            df = self.bist_analyzer.get_stock_data(symbol, days=30)
+            if df is None:
+                await status_message.edit_text(f"❌ {symbol} için veri bulunamadı.")
+                return
+            
+            df = self.bist_analyzer.calculate_technical_indicators(df)
+            signals = self.bist_analyzer.generate_trading_signals(df)
+            stock_info = self.bist_analyzer.get_stock_info(symbol)
+            
+            if stock_info is None:
+                await status_message.edit_text(f"❌ {symbol} için hisse bilgisi bulunamadı.")
+                return
+            
+            # AI analizi al
+            ai_analysis = self.chatgpt.get_ai_analysis(
+                stock_info['name'], df, stock_info, signals
+            )
+            
+            ai_message = f"""
+🤖 **{stock_info['name']} ({stock_info['symbol']}) BIST AI Analizi**
+
+{ai_analysis}
+
+💰 **Güncel Fiyat:** ₺{stock_info['current_price']:,.2f}
+📈 **24s Değişim:** {stock_info['price_change_24h']:.2f}%
+🎯 **Genel Sinyal:** {signals['overall_signal']}
+📊 **Güven:** {signals['confidence']}%
+            """
+            
+            await status_message.edit_text(ai_message, parse_mode='Markdown')
+            
+        except Exception as e:
+            logger.error(f"BIST AI analiz hatası: {e}")
+            await update.message.reply_text("❌ BIST AI analizi yapılırken hata oluştu.")
+    
+    async def market_summary_bist(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """BIST piyasa özeti"""
+        try:
+            status_message = await update.message.reply_text("📊 BIST piyasa özeti hazırlanıyor...")
+            
+            # Desteklenen hisselerin özetini al
+            summary_data = []
+            for symbol in self.config.SUPPORTED_BIST_STOCKS[:5]:  # İlk 5 hisse
+                stock_info = self.bist_analyzer.get_stock_info(symbol)
+                if stock_info:
+                    summary_data.append(stock_info)
+            
+            if not summary_data:
+                await status_message.edit_text("❌ BIST verisi alınamadı.")
+                return
+            
+            # Özet mesajını oluştur
+            summary_message = "📊 **BIST Piyasa Özeti**\n\n"
+            
+            for data in summary_data:
+                change_emoji = "📈" if data['price_change_24h'] > 0 else "📉"
+                summary_message += f"{change_emoji} **{data['symbol']}:** ₺{data['current_price']:,.2f} ({data['price_change_24h']:+.2f}%)\n"
+            
+            # AI piyasa duyarlılığı
+            stock_names = [data['name'] for data in summary_data]
+            sentiment = self.chatgpt.get_market_sentiment(stock_names)
+            
+            summary_message += f"\n🤖 **AI BIST Değerlendirmesi:**\n{sentiment}"
+            
+            await status_message.edit_text(summary_message, parse_mode='Markdown')
+            
+        except Exception as e:
+            logger.error(f"BIST piyasa özeti hatası: {e}")
+            await update.message.reply_text("❌ BIST piyasa özeti oluşturulurken hata oluştu.")
+    
+    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Yardım menüsü"""
+        help_message = """
+🤖 **Hibrit Analiz Botu - Yardım**
+
+📋 **Komutlar:**
+
+🪙 **Kripto Para Komutları:**
+/analyze <coin> - Detaylı kripto para analizi
+/price <coin> - Kripto fiyat bilgisi
+/signals <coin> - Kripto trading sinyalleri
+/ai_analysis <coin> - Kripto AI analizi
+
+📊 **BIST Komutları:**
+/analyze_bist <hisse> - BIST hisse analizi
+/price_bist <hisse> - BIST fiyat bilgisi
+/signals_bist <hisse> - BIST trading sinyalleri
+/ai_analysis_bist <hisse> - BIST AI analizi
+
+📈 **Piyasa Komutları:**
+/market_summary - Kripto piyasa özeti
+/market_summary_bist - BIST piyasa özeti
+
+📚 **Eğitim:**
+/education <topic> - Eğitici içerik
+
+❓ **Yardım:**
+/help - Bu yardım mesajı
+
+💡 **Örnekler:**
+/analyze bitcoin
+/price_bist THYAO
+/signals_bist GARAN
+/ai_analysis_bist AKBNK
+/education rsi
+
+⚠️ **Önemli:** Bu bot sadece bilgilendirme amaçlıdır ve yatırım tavsiyesi değildir.
+        """
+        
+        await update.message.reply_text(help_message, parse_mode='Markdown')
+    
+    async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Buton callback'leri"""
+        query = update.callback_query
+        await query.answer()
+        
+        if query.data.startswith("analyze_"):
+            coin_id = query.data.replace("analyze_", "")
+            # Analiz işlemini başlat
+            context.args = [coin_id]
+            # Callback query için özel update objesi oluştur
+            fake_update = type('Update', (), {
+                'message': query.message,
+                'callback_query': query
+            })()
+            await self.analyze_coin(fake_update, context)
+        elif query.data == "menu_crypto":
+            # Kripto para menüsü
+            keyboard = [
+                [InlineKeyboardButton("Bitcoin", callback_data="analyze_bitcoin")],
+                [InlineKeyboardButton("Ethereum", callback_data="analyze_ethereum")],
+                [InlineKeyboardButton("Binance Coin", callback_data="analyze_binancecoin")],
+                [InlineKeyboardButton("Cardano", callback_data="analyze_cardano")],
+                [InlineKeyboardButton("Solana", callback_data="analyze_solana")],
+                [InlineKeyboardButton("🔙 Ana Menü", callback_data="menu_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text("🪙 **Kripto Para Seçin:**", reply_markup=reply_markup, parse_mode='Markdown')
+        elif query.data == "menu_bist":
+            # BIST menüsü
+            keyboard = [
+                [InlineKeyboardButton("THYAO", callback_data="analyze_bist_THYAO")],
+                [InlineKeyboardButton("GARAN", callback_data="analyze_bist_GARAN")],
+                [InlineKeyboardButton("AKBNK", callback_data="analyze_bist_AKBNK")],
+                [InlineKeyboardButton("ASELS", callback_data="analyze_bist_ASELS")],
+                [InlineKeyboardButton("TUPRS", callback_data="analyze_bist_TUPRS")],
+                [InlineKeyboardButton("🔙 Ana Menü", callback_data="menu_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text("📊 **BIST Hisse Seçin:**", reply_markup=reply_markup, parse_mode='Markdown')
+        elif query.data == "menu_education":
+            # Eğitim menüsü
+            keyboard = [
+                [InlineKeyboardButton("RSI", callback_data="education_rsi")],
+                [InlineKeyboardButton("MACD", callback_data="education_macd")],
+                [InlineKeyboardButton("Bollinger Bands", callback_data="education_bollinger")],
+                [InlineKeyboardButton("Risk Yönetimi", callback_data="education_risk")],
+                [InlineKeyboardButton("🔙 Ana Menü", callback_data="menu_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text("📚 **Eğitim Konusu Seçin:**", reply_markup=reply_markup, parse_mode='Markdown')
+        elif query.data == "menu_help":
+            # Yardım menüsü
+            await self.help_command(update, context)
+        elif query.data == "menu_main":
+            # Ana menüye dön
+            await self.start(update, context)
+        elif query.data.startswith("analyze_bist_"):
+            symbol = query.data.replace("analyze_bist_", "")
+            context.args = [symbol]
+            # Callback query için özel update objesi oluştur
+            fake_update = type('Update', (), {
+                'message': query.message,
+                'callback_query': query
+            })()
+            await self.analyze_bist(fake_update, context)
+        elif query.data.startswith("education_"):
+            topic = query.data.replace("education_", "")
+            context.args = [topic]
+            # Callback query için özel update objesi oluştur
+            fake_update = type('Update', (), {
+                'message': query.message,
+                'callback_query': query
+            })()
+            await self.education(fake_update, context)
+    
+    async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Hata yönetimi"""
+        logger.error(f"Bot hatası: {context.error}")
+        if update and update.effective_message:
+            await update.effective_message.reply_text("❌ Bir hata oluştu. Lütfen daha sonra tekrar deneyin.")
+    
+    def run(self):
+        """Botu çalıştır"""
+        # Bot uygulamasını oluştur
+        application = Application.builder().token(self.config.TELEGRAM_TOKEN).build()
+        
+        # Komut handler'larını ekle
+        application.add_handler(CommandHandler("start", self.start))
+        
+        # Kripto para komutları
+        application.add_handler(CommandHandler("analyze", self.analyze_coin))
+        application.add_handler(CommandHandler("price", self.get_price))
+        application.add_handler(CommandHandler("signals", self.get_signals))
+        application.add_handler(CommandHandler("ai_analysis", self.ai_analysis))
+        application.add_handler(CommandHandler("market_summary", self.market_summary))
+        
+        # BIST komutları
+        application.add_handler(CommandHandler("analyze_bist", self.analyze_bist))
+        application.add_handler(CommandHandler("price_bist", self.get_price_bist))
+        application.add_handler(CommandHandler("signals_bist", self.get_signals_bist))
+        application.add_handler(CommandHandler("ai_analysis_bist", self.ai_analysis_bist))
+        application.add_handler(CommandHandler("market_summary_bist", self.market_summary_bist))
+        
+        # Genel komutlar
+        application.add_handler(CommandHandler("education", self.education))
+        application.add_handler(CommandHandler("help", self.help_command))
+        
+        # Callback handler'ı ekle
+        application.add_handler(CallbackQueryHandler(self.button_callback))
+        
+        # Hata handler'ı ekle
+        application.add_error_handler(self.error_handler)
+        
+        # Botu başlat
+        logger.info("Bot başlatılıyor...")
+        application.run_polling()
+
+if __name__ == "__main__":
+    bot = CryptoBot()
+    bot.run()

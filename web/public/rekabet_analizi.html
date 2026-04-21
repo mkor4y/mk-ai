@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rakip Analizi - MK AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #1a1a1a;
+            margin-bottom: 30px;
+            font-size: 32px;
+            text-align: left;
+            border-left: 6px solid #2563eb;
+            padding-left: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-weight: 800;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 16px;
+        }
+
+        th:first-child {
+            text-align: left;
+            padding-left: 30px;
+            width: 25%;
+        }
+
+        /* MK AI Column Header */
+        th:last-child {
+            background: #2563eb;
+            color: white;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+        }
+
+        td {
+            padding: 18px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        td:first-child {
+            text-align: left;
+            padding-left: 30px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        /* MK AI Column Cells */
+        td:last-child {
+            background: #eff6ff;
+            border-left: 1px solid #bfdbfe;
+            border-right: 1px solid #bfdbfe;
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Icons */
+        .check {
+            color: #16a34a;
+            font-size: 22px;
+            background: #dcfce7;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .cross {
+            color: #dc2626;
+            font-size: 20px;
+            background: #fee2e2;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .partial {
+            color: #d97706;
+            font-size: 16px;
+            background: #fef3c7;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .text-badge {
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .mk-badge {
+            background: #2563eb;
+            color: white;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .cost-high {
+            color: #dc2626;
+        }
+
+        .cost-free {
+            color: #16a34a;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Rakip Analizi</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Özellikler</th>
+                    <th>Bloomberg</th>
+                    <th>Investing</th>
+                    <th>Matriks</th>
+                    <th>MK AI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>BIST Odaklı</td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><span class="partial">Kısmen</span></td>
+                    <td><i class="fas fa-check check"></i></td>
+                    <td><i class="fas fa-check check"></i></td>
+                </tr>
+                <tr>
+                    <td>Türkçe Arayüz</td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><span class="partial">Kısmen</span></td>
+                    <td><i class="fas fa-check check"></i></td>
+                    <td><i class="fas fa-check check"></i></td>
+                </tr>
+                <tr>
+                    <td>AI Destekli Yorum</td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-check check"></i></td>
+                </tr>
+                <tr>
+                    <td>Haber Duyarlılık</td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-check check"></i></td>
+                </tr>
+                <tr>
+                    <td>Telegram Bot</td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-check check"></i></td>
+                </tr>
+                <tr>
+                    <td>Eğitim Modülü</td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><span class="partial">Kısmen</span></td>
+                    <td><i class="fas fa-times cross"></i></td>
+                    <td><i class="fas fa-check check"></i></td>
+                </tr>
+                <tr>
+                    <td>Maliyet</td>
+                    <td><span class="text-badge cost-high">$25k / Yıl</span></td>
+                    <td><span class="text-badge cost-free">Ücretsiz</span></td>
+                    <td><span class="text-badge">~750₺ / Ay</span></td>
+                    <td><span class="text-badge mk-badge">Freemium</span></td>
+                </tr>
+                <tr>
+                    <td>Erişim Kanalı</td>
+                    <td><span class="text-badge">Terminal</span></td>
+                    <td><span class="text-badge">Web / Mobil</span></td>
+                    <td><span class="text-badge">Web / Desktop</span></td>
+                    <td><span class="text-badge mk-badge">4 Kanal</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yol Haritası - MK AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            width: 1000px;
+            position: relative;
+            padding: 50px 0;
+        }
+
+        /* SVG Yol Tasarımı */
+        .road-container {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        /* Pinler ve İçerik */
+        .milestones {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            height: 400px;
+        }
+
+        .milestone {
+            position: absolute;
+            width: 220px;
+            text-align: center;
+        }
+
+        /* Konumlandırma Hesapları (Yolun kıvrımlarına göre) */
+        .m1 {
+            top: 0;
+            left: 5%;
+        }
+
+        .m2 {
+            bottom: 0;
+            left: 30%;
+        }
+
+        .m3 {
+            top: 0;
+            left: 55%;
+        }
+
+        .m4 {
+            bottom: 0;
+            left: 80%;
+        }
+
+        .pin {
+            width: 60px;
+            height: 60px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .pin i {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 24px;
+        }
+
+        .pin::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        /* Renkler */
+        .blue .pin {
+            background: #2563eb;
+        }
+
+        .green .pin {
+            background: #84cc16;
+        }
+
+        .teal .pin {
+            background: #06b6d4;
+        }
+
+        .orange .pin {
+            background: #f59e0b;
+        }
+
+        .blue h3 {
+            color: #1e40af;
+        }
+
+        .green h3 {
+            color: #4d7c0f;
+        }
+
+        .teal h3 {
+            color: #0e7490;
+        }
+
+        .orange h3 {
+            color: #b45309;
+        }
+
+        h3 {
+            font-size: 18px;
+            margin: 0 0 10px;
+            font-weight: 800;
+        }
+
+        p {
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.5;
+            margin: 0;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Çizgiler */
+        .line {
+            position: absolute;
+            width: 4px;
+            background-color: #cbd5e1;
+            z-index: -1;
+        }
+
+        .m1 .line {
+            height: 100px;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .m3 .line {
+            height: 100px;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .m2 .line {
+            height: 100px;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .m4 .line {
+            height: 100px;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Kıvrımlı Yol SVG -->
+        <div class="road-container">
+            <svg viewBox="0 0 1000 200" preserveAspectRatio="none">
+                <!-- Yolun Kendisi -->
+                <path d="M0,100 C250,250 250,-50 500,100 C750,250 750,-50 1000,100" fill="none" stroke="#1e293b"
+                    stroke-width="60" stroke-linecap="round" />
+
+                <!-- Yol Şeritleri (Kesikli Çizgi) -->
+                <path d="M0,100 C250,250 250,-50 500,100 C750,250 750,-50 1000,100" fill="none" stroke="white"
+                    stroke-width="4" stroke-dasharray="20,20" />
+            </svg>
+        </div>
+
+        <div class="milestones">
+            <!-- Faz 1 -->
+            <div class="milestone m1 blue">
+                <div class="pin"><i class="fas fa-check"></i></div>
+                <h3>Faz 1: MVP ve Doğrulama</h3>
+                <p>
+                    Telegram Bot, Web & Desktop yayında. AI analiz motoru ve haber entegrasyonu tamamlandı. (Doğrulandı
+                    ✅)
+                </p>
+            </div>
+
+            <!-- Faz 2 -->
+            <div class="milestone m2 green">
+                <p>
+                    Kullanıcı hesap sistemi, portföy takibi, fiyat alarmları ve tüm BIST hisselerine genişleme. (2026
+                    Q2-Q3)
+                </p>
+                <h3>Faz 2: Büyüme</h3>
+                <div class="pin"><i class="fas fa-chart-line"></i></div>
+            </div>
+
+            <!-- Faz 3 -->
+            <div class="milestone m3 teal">
+                <div class="pin"><i class="fas fa-rocket"></i></div>
+                <h3>Faz 3: Ölçekleme</h3>
+                <p>
+                    Premium abonelik, mobil uygulama, gelişmiş NLP ve topluluk özelliklerinin eklenmesi. (2026 Q4)
+                </p>
+            </div>
+
+            <!-- Faz 4 -->
+            <div class="milestone m4 orange">
+                <p>
+                    Global piyasalar (NASDAQ), portföy optimizasyonu ve sosyal trading entegrasyonu. (2027+)
+                </p>
+                <h3>Faz 4: Genişleme</h3>
+                <div class="pin"><i class="fas fa-globe"></i></div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

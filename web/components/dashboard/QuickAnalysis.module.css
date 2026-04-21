@@ -1,0 +1,122 @@
+.card {
+    background: #0f1629;
+    border: 1px solid rgba(56, 189, 248, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.cardHeader {
+    margin-bottom: 20px;
+}
+
+.cardHeader h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.inputGroup label {
+    font-size: 0.875rem;
+    color: rgba(248, 250, 252, 0.6);
+    font-weight: 500;
+}
+
+.input {
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #f8fafc;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.input:focus {
+    border-color: rgba(56, 189, 248, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.input::placeholder {
+    color: rgba(248, 250, 252, 0.3);
+    text-transform: none;
+    font-weight: 400;
+}
+
+.popular {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.popularLabel {
+    font-size: 0.75rem;
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(248, 250, 252, 0.7);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag:hover {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.2);
+    color: #f8fafc;
+}
+
+.tag.active {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    color: #38bdf8;
+}
+
+.analyzeBtn {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.analyzeBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
+}
+
+.analyzeBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

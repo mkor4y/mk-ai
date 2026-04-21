@@ -1,0 +1,362 @@
+import pandas as pd
+import numpy as np
+import requests
+import ta
+from datetime import datetime, timedelta
+import logging
+from config import Config
+
+class CryptoAnalyzer:
+    def __init__(self):
+        self.config = Config()
+        self.logger = logging.getLogger(__name__)
+    
+    def get_crypto_data(self, coin_id, days=30):
+        """CoinGecko API'den kripto para verilerini al"""
+        try:
+            url = f"{self.config.COINGECKO_API_URL}/coins/{coin_id}/market_chart"
+            params = {
+                'vs_currency': 'usd',
+                'days': days,
+                'interval': 'daily'
+            }
+            
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Veriyi DataFrame'e çevir
+            df = pd.DataFrame(data['prices'], columns=['timestamp', 'price'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+            df['volume'] = [v[1] for v in data['total_volumes']]
+            df['market_cap'] = [m[1] for m in data['market_caps']]
+            
+            return df
+            
+        except Exception as e:
+            self.logger.error(f"Veri alma hatası: {e}")
+            return None
+    
+    def calculate_technical_indicators(self, df):
+        """Teknik analiz göstergelerini hesapla"""
+        try:
+            if df is None or df.empty:
+                return None
+            # RSI
+            df['rsi'] = ta.momentum.RSIIndicator(df['price'], window=self.config.RSI_PERIOD).rsi()
+            # MACD
+            macd = ta.trend.MACD(df['price'], 
+                                window_fast=self.config.MACD_FAST,
+                                window_slow=self.config.MACD_SLOW,
+                                window_sign=self.config.MACD_SIGNAL)
+            df['macd'] = macd.macd()
+            df['macd_signal'] = macd.macd_signal()
+            df['macd_histogram'] = macd.macd_diff()
+            # Moving Averages
+            for period in self.config.MA_PERIODS:
+                df[f'ma_{period}'] = ta.trend.SMAIndicator(df['price'], window=period).sma_indicator()
+            # Bollinger Bands
+            bb = ta.volatility.BollingerBands(df['price'], 
+                                            window=self.config.BOLLINGER_PERIOD,
+                                            window_dev=self.config.BOLLINGER_STD)
+            df['bb_upper'] = bb.bollinger_hband()
+            df['bb_middle'] = bb.bollinger_mavg()
+            df['bb_lower'] = bb.bollinger_lband()
+            # Volume indicators
+            df['volume_sma'] = df['volume'].rolling(20).mean()
+            df['volume_ratio'] = df['volume'] / df['volume_sma']
+            # NaN'leri doldur
+            for col in ['rsi','macd','macd_signal','macd_histogram','ma_20','ma_50','ma_200','bb_upper','bb_middle','bb_lower','volume_sma','volume_ratio']:
+                if col in df:
+                    df[col] = df[col].fillna(0.0)
+            return df
+        except Exception as e:
+            self.logger.error(f"Teknik analiz hatası: {e}")
+            return df if df is not None else None
+    
+    def generate_trading_signals(self, df):
+        """Profesyonel Trading Sinyalleri Oluştur"""
+        signals = {
+            'rsi_signal': 'NÖTR',
+            'macd_signal': 'NÖTR',
+            'ma_signal': 'NÖTR',
+            'bb_signal': 'NÖTR',
+            'volume_signal': 'NÖTR',
+            'trend_signal': 'NÖTR',
+            'momentum_signal': 'NÖTR',
+            'support_resistance_signal': 'NÖTR',
+            'overall_signal': 'NÖTR',
+            'confidence': 0,
+            'risk_level': 'ORTA',
+            'entry_price': 0,
+            'stop_loss': 0,
+            'take_profit': 0,
+            'signal_strength': 'ZAYIF',
+            'rsi_strength': '-',
+            'macd_strength': '-',  
+            'ma_strength': '-',
+            'bb_strength': '-',
+            'volume_strength': '-',
+            'trend_strength': '-',
+            'momentum_strength': '-',
+            'sr_strength': '-'
+        }
+        try:
+            if df is None or df.empty or len(df) < 2:
+                # Fallback: Sadece son iki fiyatı kullanarak sinyal üret
+                if df is not None and len(df) == 1:
+                    price_now = df.iloc[-1]['price']
+                    price_prev = price_now
+                elif df is not None and len(df) > 1:
+                    price_now = df.iloc[-1]['price']
+                    price_prev = df.iloc[-2]['price']
+                else:
+                    price_now = price_prev = 0.0
+                if price_now > price_prev:
+                    signals['overall_signal'] = 'AL'
+                    signals['confidence'] = 60
+                elif price_now < price_prev:
+                    signals['overall_signal'] = 'SAT'
+                    signals['confidence'] = 60
+                else:
+                    signals['overall_signal'] = 'BEKLE'
+                    signals['confidence'] = 50
+                return signals
+            current = df.iloc[-1]
+            prev = df.iloc[-2]
+            # RSI Sinyali
+            rsi = current['rsi']
+            if rsi < 30:
+                signals['rsi_signal'] = 'AL'
+            elif rsi > 70:
+                signals['rsi_signal'] = 'SAT'
+            else:
+                signals['rsi_signal'] = 'BEKLE'
+            # MACD Sinyali
+            macd = current['macd']
+            macd_signal = current['macd_signal']
+            if macd > macd_signal:
+                signals['macd_signal'] = 'AL'
+            elif macd < macd_signal:
+                signals['macd_signal'] = 'SAT'
+            else:
+                signals['macd_signal'] = 'BEKLE'
+            # MA Sinyali
+            ma_20 = current['ma_20']
+            price = current['price']
+            if price > ma_20:
+                signals['ma_signal'] = 'AL'
+            elif price < ma_20:
+                signals['ma_signal'] = 'SAT'
+            else:
+                signals['ma_signal'] = 'BEKLE'
+            # BB Sinyali
+            bb_upper = current['bb_upper']
+            bb_lower = current['bb_lower']
+            if price > bb_upper:
+                signals['bb_signal'] = 'SAT'
+            elif price < bb_lower:
+                signals['bb_signal'] = 'AL'
+            else:
+                signals['bb_signal'] = 'BEKLE'
+            # Hacim Sinyali
+            volume_ratio = current['volume_ratio']
+            if volume_ratio > 1.5:
+                signals['volume_signal'] = 'AL'
+            elif volume_ratio < 0.7:
+                signals['volume_signal'] = 'SAT'
+            else:
+                signals['volume_signal'] = 'BEKLE'
+            # Güven hesaplama (basit):
+            al_count = sum(1 for k in ['rsi_signal','macd_signal','ma_signal','bb_signal','volume_signal'] if signals[k]=='AL')
+            sat_count = sum(1 for k in ['rsi_signal','macd_signal','ma_signal','bb_signal','volume_signal'] if signals[k]=='SAT')
+            if al_count > sat_count:
+                signals['overall_signal'] = 'AL'
+                signals['confidence'] = 60 + 10 * (al_count - sat_count)
+            elif sat_count > al_count:
+                signals['overall_signal'] = 'SAT'
+                signals['confidence'] = 60 + 10 * (sat_count - al_count)
+            else:
+                signals['overall_signal'] = 'BEKLE'
+                signals['confidence'] = 50
+            return signals
+        except Exception as e:
+            self.logger.error(f"Profesyonel sinyal oluşturma hatası: {e}")
+            return signals
+    
+    def _get_signal_strength(self, confidence):
+        """Sinyal gücünü belirle"""
+        if confidence >= 80:
+            return 'ÇOK GÜÇLÜ'
+        elif confidence >= 65:
+            return 'GÜÇLÜ'
+        elif confidence >= 50:
+            return 'ORTA'
+        else:
+            return 'ZAYIF'
+    
+    def _calculate_risk_level(self, df, signals):
+        """Risk seviyesini hesapla"""
+        try:
+            # Volatilite hesaplama
+            returns = df['price'].pct_change().dropna()
+            volatility = returns.std() * (252 ** 0.5)  # Yıllık volatilite
+            
+            # Risk faktörleri
+            risk_factors = 0
+            
+            if volatility > 0.8:  # %80+ yıllık volatilite
+                risk_factors += 3
+            elif volatility > 0.5:  # %50+ yıllık volatilite
+                risk_factors += 2
+            elif volatility > 0.3:  # %30+ yıllık volatilite
+                risk_factors += 1
+            
+            # Sinyal gücü risk faktörü
+            if signals['signal_strength'] == 'ZAYIF':
+                risk_factors += 2
+            elif signals['signal_strength'] == 'ORTA':
+                risk_factors += 1
+            
+            # Trend karşıtı sinyaller
+            if signals['trend_signal'] != signals['overall_signal']:
+                risk_factors += 1
+            
+            # Risk seviyesi belirleme
+            if risk_factors >= 4:
+                return 'ÇOK YÜKSEK'
+            elif risk_factors >= 3:
+                return 'YÜKSEK'
+            elif risk_factors >= 2:
+                return 'ORTA'
+            else:
+                return 'DÜŞÜK'
+                
+        except Exception as e:
+            self.logger.error(f"Risk hesaplama hatası: {e}")
+            return 'ORTA'
+    
+    def _calculate_entry_points(self, df, signals):
+        """Entry, stop loss ve take profit hesapla"""
+        try:
+            current_price = df.iloc[-1]['price']
+            
+            if signals['overall_signal'] == 'AL':
+                # AL sinyali için
+                entry = current_price
+                stop_loss = entry * 0.95  # %5 stop loss
+                take_profit = entry * 1.15  # %15 take profit
+                
+                # Bollinger Bands'a göre ayarla
+                bb_lower = df.iloc[-1]['bb_lower']
+                if bb_lower < stop_loss:
+                    stop_loss = bb_lower * 0.98
+                
+            elif signals['overall_signal'] == 'SAT':
+                # SAT sinyali için
+                entry = current_price
+                stop_loss = entry * 1.05  # %5 stop loss
+                take_profit = entry * 0.85  # %15 take profit
+                
+                # Bollinger Bands'a göre ayarla
+                bb_upper = df.iloc[-1]['bb_upper']
+                if bb_upper > stop_loss:
+                    stop_loss = bb_upper * 1.02
+            else:
+                entry = stop_loss = take_profit = 0
+            
+            return round(entry, 4), round(stop_loss, 4), round(take_profit, 4)
+            
+        except Exception as e:
+            self.logger.error(f"Entry point hesaplama hatası: {e}")
+            return 0, 0, 0
+    
+    def get_market_summary(self, coin_id):
+        """Piyasa özeti al"""
+        try:
+            url = f"{self.config.COINGECKO_API_URL}/coins/{coin_id}"
+            params = {'localization': False, 'tickers': False, 'community_data': False, 'developer_data': False}
+            
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            return {
+                'name': data['name'],
+                'symbol': data['symbol'].upper(),
+                'current_price': data['market_data']['current_price']['usd'],
+                'price_change_24h': data['market_data']['price_change_percentage_24h'],
+                'market_cap': data['market_data']['market_cap']['usd'],
+                'volume_24h': data['market_data']['total_volume']['usd'],
+                'ath': data['market_data']['ath']['usd'],
+                'ath_change_percentage': data['market_data']['ath_change_percentage']['usd'],
+                'atl': data['market_data']['atl']['usd'],
+                'atl_change_percentage': data['market_data']['atl_change_percentage']['usd']
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Piyasa özeti alma hatası: {e}")
+            return None
+    
+    def format_analysis_message(self, coin_id, df, signals, market_data):
+        """Profesyonel Analiz Mesajını Formatla"""
+        try:
+            current = df.iloc[-1]
+            
+            message = f"🔍 **{market_data['name']} ({market_data['symbol']}) Analizi**\n\n"
+            
+            # Fiyat bilgileri
+            message += f"💰 **Güncel Fiyat:** ${current['price']:,.2f}\n"
+            message += f"📈 **24s Değişim:** {market_data['price_change_24h']:.2f}%\n"
+            message += f"📊 **Piyasa Değeri:** ${market_data['market_cap']:,.0f}\n"
+            message += f"📈 **24s Hacim:** ${market_data['volume_24h']:,.0f}\n\n"
+            
+            # Teknik göstergeler
+            message += "📊 **Teknik Göstergeler:**\n"
+            message += f"• RSI: {current['rsi']:.1f} ({signals.get('rsi_strength', 'N/A')})\n"
+            message += f"• MACD: {current['macd']:.4f} ({signals.get('macd_strength', 'N/A')})\n"
+            message += f"• MA20: ${current['ma_20']:.2f}\n"
+            message += f"• MA50: ${current['ma_50']:.2f}\n"
+            message += f"• MA200: ${current['ma_200']:.2f}\n"
+            message += f"• BB Üst: ${current['bb_upper']:.2f}\n"
+            message += f"• BB Alt: ${current['bb_lower']:.2f}\n\n"
+            
+            # Trading sinyalleri
+            message += "🎯 **Trading Sinyalleri:**\n"
+            message += f"• RSI: {signals['rsi_signal']} ({signals.get('rsi_strength', '-')})\n"
+            message += f"• MACD: {signals['macd_signal']} ({signals.get('macd_strength', '-')})\n"
+            message += f"• MA: {signals['ma_signal']} ({signals.get('ma_strength', '-')})\n"
+            message += f"• BB: {signals['bb_signal']} ({signals.get('bb_strength', '-')})\n"
+            message += f"• Hacim: {signals['volume_signal']} ({signals.get('volume_strength', '-')})\n"
+            message += f"• Trend: {signals['trend_signal']} ({signals.get('trend_strength', '-')})\n"
+            message += f"• Momentum: {signals['momentum_signal']} ({signals.get('momentum_strength', '-')})\n"
+            message += f"• Destek/Direnç: {signals['support_resistance_signal']} ({signals.get('sr_strength', '-')})\n\n"
+            
+            # Genel sinyal ve güven
+            signal_emoji = {
+                'AL': '🟢',
+                'SAT': '🔴',
+                'BEKLE': '🟡',
+                'NÖTR': '⚪'
+            }
+            
+            message += f"🎯 **GENEL SİNYAL:** {signal_emoji.get(signals['overall_signal'], '⚪')} {signals['overall_signal']}\n"
+            message += f"📊 **Güven:** {signals['confidence']:.1f}%\n"
+            message += f"💪 **Sinyal Gücü:** {signals['signal_strength']}\n"
+            message += f"⚠️ **Risk Seviyesi:** {signals['risk_level']}\n\n"
+            
+            # Entry/Stop/Target bilgileri
+            if signals['overall_signal'] in ['AL', 'SAT'] and signals['entry_price'] > 0:
+                message += "📈 **Trading Seviyeleri:**\n"
+                message += f"• Giriş: ${signals['entry_price']:.4f}\n"
+                message += f"• Stop Loss: ${signals['stop_loss']:.4f}\n"
+                message += f"• Take Profit: ${signals['take_profit']:.4f}\n\n"
+            
+            # Risk uyarısı
+            message += self.config.RISK_WARNING
+            
+            return message
+            
+        except Exception as e:
+            self.logger.error(f"Profesyonel mesaj formatlama hatası: {e}")
+            return "❌ Analiz oluşturulurken hata oluştu."
