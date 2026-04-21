@@ -242,4 +242,4 @@ Geçmiş performans gelecekteki sonuçların garantisi değildir.
     """
 
     # ==================== NEWSAPI AYARI ====================
-    NEWSAPI_KEY = 'cc850dc7efec4a62b20a5cce31623871'
+    NEWSAPI_KEY = os.getenv('NEWSAPI_KEY')
