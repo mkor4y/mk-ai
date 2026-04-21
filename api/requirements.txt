@@ -1,0 +1,14 @@
+# FastAPI Web Server
+fastapi==0.109.0
+uvicorn==0.27.0
+pydantic==2.5.3
+
+# Project Dependencies (Backend also uses these)
+pandas==2.1.4
+numpy==1.24.3
+ta==0.10.2
+git+https://github.com/mcomas77/tvDatafeed.git
+feedparser==6.0.10
+requests==2.31.0
+openai==1.6.1
+python-dotenv==1.0.0
