@@ -229,6 +229,40 @@ async def get_market_summary():
         }
 
 
+@app.get("/api/news")
+async def get_all_news():
+    """Haberler sekmesi için genel finans/borsa RSS haberleri"""
+    try:
+        raw_news = news_helper.fetch_all_news()
+        formatted_news = []
+        for n in raw_news[:30]:  # Son 30 haberi döndür
+            pub = n.get('published')
+            if isinstance(pub, datetime):
+                date_str = pub.strftime('%d.%m.%Y %H:%M')
+            else:
+                date_str = str(pub) if pub else ""
+                
+            formatted_news.append({
+                "title": n.get('title', ''),
+                "description": n.get('description', ''),
+                "link": n.get('link', ''),
+                "published": date_str,
+                "source": n.get('source', '')
+            })
+            
+        return {
+            "success": True,
+            "news": formatted_news,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "news": []
+        }
+
+
 # ============= TELEGRAM BOTU İLE AYNI FONKSİYONLAR =============
 
 def get_stock_analysis_data(stock_symbol: str) -> dict:
