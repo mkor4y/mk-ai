@@ -18,7 +18,7 @@ Future<void> main() async {
   try {
     await dotenv.load(fileName: '.env');
   } catch (e) {
-    debugPrint('.env dosyası yüklenemedi, varsayılan ayarlar kullanılacak: $e');
+    debugPrint('.env dosyası yüklenemedi, varsayılan ayarlar kullanılacak.');
   }
 
   // Status bar stilini ayarla (şeffaf, beyaz ikonlar)
