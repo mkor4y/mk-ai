@@ -1,0 +1,40 @@
+workflows:
+  ios-release:
+    name: iOS Release Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.mkoray.mkai
+      vars:
+        XCODE_WORKSPACE: "Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+        # .env dosyası için environment variable
+        API_BASE_URL: "https://your-production-api.com"
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Set up .env file
+        script: |
+          echo "API_BASE_URL=$API_BASE_URL" > $CM_BUILD_DIR/mobile/.env
+      - name: Get Flutter packages
+        script: |
+          cd mobile
+          flutter packages pub get
+      - name: Install CocoaPods dependencies
+        script: |
+          cd mobile/ios
+          pod install
+      - name: Flutter build iOS
+        script: |
+          cd mobile
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - mobile/build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
