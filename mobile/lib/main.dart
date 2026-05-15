@@ -14,8 +14,12 @@ import 'config/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // .env dosyasını yükle (API_BASE_URL)
-  await dotenv.load(fileName: '.env');
+  // .env dosyasını yükle (varsa)
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('.env dosyası yüklenemedi, varsayılan ayarlar kullanılacak.');
+  }
 
   // Status bar stilini ayarla (şeffaf, beyaz ikonlar)
   SystemChrome.setSystemUIOverlayStyle(
