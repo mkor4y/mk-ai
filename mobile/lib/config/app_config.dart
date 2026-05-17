@@ -12,10 +12,26 @@ class AppConfig {
   // ==================== API AYARLARI ====================
 
   /// FastAPI backend URL'si
-  /// Emülatör: http://10.0.2.2:8000
-  /// Gerçek cihaz: http://172.20.10.6:8000
-  static String get apiBaseUrl =>
-      dotenv.env['API_BASE_URL'] ?? 'http://172.20.10.6:8000';
+  ///
+  /// Üretim:             https://m-koray.online/api
+  /// Android emülatör:   http://10.0.2.2:8000
+  /// Gerçek cihaz (LAN): http://[PC-LAN-IP]:8000
+  ///
+  /// Değer önceliği:
+  /// 1) `--dart-define=API_BASE_URL=...` (build sırasında geçilen)
+  /// 2) `.env` dosyasındaki `API_BASE_URL` (assets/pubspec'e dahil)
+  /// 3) Fallback: aşağıdaki üretim URL'si
+  static String get apiBaseUrl {
+    const fromDefine = String.fromEnvironment('API_BASE_URL');
+    if (fromDefine.isNotEmpty) return fromDefine;
+    try {
+      final fromDotenv = dotenv.env['API_BASE_URL'];
+      if (fromDotenv != null && fromDotenv.isNotEmpty) return fromDotenv;
+    } catch (_) {
+      // dotenv henüz initialize edilmediyse veya .env asset'i yoksa sessizce fallback'e geç
+    }
+    return 'https://m-koray.online/api';
+  }
 
   // ==================== API ENDPOINT'LERİ ====================
   static String get marketSummaryUrl => '$apiBaseUrl/api/market/summary';
@@ -32,8 +48,10 @@ class AppConfig {
   /// Dashboard auto-refresh süresi (milisaniye)
   static const int refreshInterval = 30000; // 30 saniye
 
-  /// HTTP istek zaman aşımı (saniye)
-  static const int httpTimeout = 30;
+  /// HTTP istek zaman aşımı (saniye).
+  /// 60 sn cunku /api/market/summary yavas backend'lerde (cold start)
+  /// 8 sembol icin TradingView'den veri cekiyor.
+  static const int httpTimeout = 60;
 
   // ==================== DESTEKLENEN BIST HİSSELERİ ====================
   /// Backend'deki Config.SUPPORTED_BIST_STOCKS ile birebir aynı.
@@ -75,6 +93,46 @@ class AppConfig {
           .map((s) => s.name)
           .firstOrNull ??
       code;
+
+  // ==================== HISSE SEKTORLERI ====================
+  /// Her BIST hissesinin sektoru (filter chip icin).
+  static const Map<String, String> stockSectors = {
+    'GARAN': 'Bankacılık',
+    'AKBNK': 'Bankacılık',
+    'ISCTR': 'Bankacılık',
+    'YKBNK': 'Bankacılık',
+    'HALKB': 'Bankacılık',
+    'VAKBN': 'Bankacılık',
+    'THYAO': 'Ulaşım',
+    'PGSUS': 'Ulaşım',
+    'TUREX': 'Ulaşım',
+    'KSTUR': 'Ulaşım',
+    'ASELS': 'Savunma',
+    'KCHOL': 'Holding',
+    'SAHOL': 'Holding',
+    'TKFEN': 'Holding',
+    'KRDMD': 'Demir-Çelik',
+    'EREGL': 'Demir-Çelik',
+    'TUPRS': 'Enerji',
+    'SISE': 'Cam',
+    'BIMAS': 'Perakende',
+    'FROTO': 'Otomotiv',
+    'TOASO': 'Otomotiv',
+    'DOFRB': 'Otomotiv',
+    'BORLS': 'Otomotiv',
+    'HEKTS': 'Tarım Kimya',
+    'SASA': 'Kimya',
+  };
+
+  static String sectorOf(String code) =>
+      stockSectors[code.toUpperCase()] ?? 'Diğer';
+
+  /// Benzersiz sektor listesi (alfabetik)
+  static List<String> get allSectors {
+    final set = supportedStocks.map((s) => sectorOf(s.code)).toSet().toList();
+    set.sort();
+    return set;
+  }
 
   // ==================== RİSK UYARISI ====================
   static const String riskWarning =

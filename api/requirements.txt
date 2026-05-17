@@ -3,12 +3,21 @@ fastapi==0.109.0
 uvicorn==0.27.0
 pydantic==2.5.3
 
+# cPanel / Passenger (WSGI) icin ASGI -> WSGI adaptoru
+a2wsgi==1.10.7
+
 # Project Dependencies (Backend also uses these)
-pandas==2.1.4
-numpy==1.24.3
+pandas>=2.2.0
+numpy>=1.26.0
 ta==0.10.2
-git+https://github.com/mcomas77/tvDatafeed.git
+
+# TradingView veri istemcisi (eski mcomas77/tvDatafeed reposu silindi).
+# PyPI'daki surdurulen fork: ayni `from tvDatafeed import TvDatafeed` API'sini saglar.
+tvdatafeed-enhanced>=2.2.1
+# tvDatafeed icinde `from websocket import ...` kullaniliyor (websocket-client paketi).
+websocket-client>=1.7.0
+
 feedparser==6.0.10
-requests==2.31.0
-openai==1.6.1
+requests>=2.32.0
+openai>=1.40.0
 python-dotenv==1.0.0

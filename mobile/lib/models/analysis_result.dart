@@ -232,17 +232,58 @@ class NewsItem {
 
 /// Chat mesaj modeli
 class ChatMessage {
+  final String id;
   final String content;
   final bool isUser;
   final DateTime timestamp;
   final String? provider;
+  final bool isError;
 
   const ChatMessage({
+    required this.id,
     required this.content,
     required this.isUser,
     required this.timestamp,
     this.provider,
+    this.isError = false,
   });
+
+  /// Yeni mesaj olustur (otomatik id)
+  factory ChatMessage.create({
+    required String content,
+    required bool isUser,
+    String? provider,
+    bool isError = false,
+  }) {
+    return ChatMessage(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      content: content,
+      isUser: isUser,
+      timestamp: DateTime.now(),
+      provider: provider,
+      isError: isError,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'content': content,
+        'isUser': isUser,
+        'timestamp': timestamp.toIso8601String(),
+        'provider': provider,
+        'isError': isError,
+      };
+
+  factory ChatMessage.fromJson(Map<String, dynamic> j) => ChatMessage(
+        id: (j['id'] as String?) ??
+            DateTime.now().microsecondsSinceEpoch.toString(),
+        content: (j['content'] as String?) ?? '',
+        isUser: (j['isUser'] as bool?) ?? false,
+        timestamp:
+            DateTime.tryParse(j['timestamp'] as String? ?? '') ?? DateTime.now(),
+        provider: j['provider'] as String?,
+        isError: (j['isError'] as bool?) ?? false,
+      );
 }
 
 /// JSON'dan double parse — null/string/int güvenli

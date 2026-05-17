@@ -1,0 +1,128 @@
+# Codemagic CI/CD Configuration — MK AI Mobile
+# https://docs.codemagic.io/yaml/yaml-getting-started/
+#
+# IKI workflow var:
+#   1) ios-unsigned   -> Imzasiz .ipa uret (Sideloadly ile yuklemek icin, ucretsiz Apple ID)
+#   2) android        -> Imzasiz .apk uret
+#
+# Flutter proje koku: mobile/  (repo kokunde codemagic.yaml, working_directory ile cd ediyoruz)
+
+workflows:
+  # =========================================================================
+  # iOS UNSIGNED IPA — Apple Developer hesabi gerektirmez
+  # Sideloadly/AltStore ile iPhone'a yuklemek icin
+  # =========================================================================
+  ios-unsigned:
+    name: iOS Unsigned IPA (Sideloadly)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.mkoray.mkai"
+        APP_NAME: "MK AI"
+    cache:
+      cache_paths:
+        - $HOME/Library/Caches/CocoaPods
+        - $HOME/.pub-cache
+        - $CM_BUILD_DIR/mobile/ios/Pods
+
+    scripts:
+      - name: Flutter & Xcode versiyon kontrolu
+        script: |
+          flutter --version
+          xcodebuild -version
+
+      - name: Pub paketlerini al
+        working_directory: mobile
+        script: |
+          flutter pub get
+
+      - name: iOS pod install
+        working_directory: mobile/ios
+        script: |
+          # Podfile yoksa flutter pub get sirasinda olusur, ama yine de garanti olsun
+          pod install --repo-update
+
+      - name: Flutter iOS build (imzasiz, release)
+        working_directory: mobile
+        script: |
+          flutter build ios \
+            --release \
+            --no-codesign \
+            --build-name=1.0.0 \
+            --build-number=$(($BUILD_NUMBER + 1))
+
+      - name: Imzasiz .ipa paketle (Sideloadly icin)
+        script: |
+          set -euo pipefail
+          APP_DIR="$CM_BUILD_DIR/mobile/build/ios/iphoneos"
+          if [ ! -d "$APP_DIR/Runner.app" ]; then
+            echo "HATA: Runner.app bulunamadi: $APP_DIR"
+            ls -la "$APP_DIR" || true
+            exit 1
+          fi
+          cd "$CM_BUILD_DIR"
+          rm -rf Payload MK_AI-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$APP_DIR/Runner.app" Payload/
+          zip -qr MK_AI-unsigned.ipa Payload
+          rm -rf Payload
+          echo "IPA boyutu:"
+          ls -lh MK_AI-unsigned.ipa
+
+    artifacts:
+      - MK_AI-unsigned.ipa
+      - mobile/build/ios/iphoneos/Runner.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+
+    publishing:
+      # Build bitince mailine indirme linki dusturmek icin:
+      # Kendi email'ini ekle, virgulle birden cok adres de olabilir.
+      email:
+        recipients: []  # ornek: ["mustafa@example.com"]
+        notify:
+          success: true
+          failure: true
+
+  # =========================================================================
+  # ANDROID UNSIGNED APK — Telefona dogrudan kurulabilir (Bilinmeyen Kaynaklar acik olmalı)
+  # =========================================================================
+  android-unsigned:
+    name: Android Unsigned APK
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      flutter: stable
+    cache:
+      cache_paths:
+        - $HOME/.pub-cache
+        - $HOME/.gradle/caches
+
+    scripts:
+      - name: Flutter versiyon
+        script: flutter --version
+
+      - name: Pub paketleri
+        working_directory: mobile
+        script: flutter pub get
+
+      - name: Android APK build (release, debug-imzali)
+        working_directory: mobile
+        script: |
+          flutter build apk \
+            --release \
+            --build-name=1.0.0 \
+            --build-number=$(($BUILD_NUMBER + 1))
+
+    artifacts:
+      - mobile/build/app/outputs/flutter-apk/*.apk
+
+    publishing:
+      email:
+        recipients: []
+        notify:
+          success: true
+          failure: true

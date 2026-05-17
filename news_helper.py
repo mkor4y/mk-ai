@@ -1,5 +1,6 @@
 import feedparser
 import requests
+import re
 from datetime import datetime, timedelta, timezone
 import logging
 from typing import List, Dict, Optional
@@ -83,13 +84,15 @@ class NewsHelper:
                     
                     # Sadece son X saatlik haberleri al
                     if published and published >= cutoff_time:
+                        content = self._extract_content(entry)
                         news_item = {
                             'title': entry.get('title', ''),
                             'description': entry.get('summary', ''),
                             'link': entry.get('link', ''),
                             'published': published,
                             'source': source_name,
-                            'content': self._extract_content(entry)
+                            'content': content,
+                            'image': self._extract_image_url(entry, content),
                         }
                         news_list.append(news_item)
                         
@@ -193,16 +196,101 @@ class NewsHelper:
         # Önce content alanını dene
         if hasattr(entry, 'content') and entry.content:
             return entry.content[0].value
-        
+
         # Sonra summary alanını dene
         if hasattr(entry, 'summary'):
             return entry.summary
-        
+
         # Son olarak description alanını dene
         if hasattr(entry, 'description'):
             return entry.description
-        
+
         return ""
+
+    # Image URL'leri yakalamak için regex'ler
+    _IMG_TAG_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.IGNORECASE)
+    _MEDIA_URL_RE = re.compile(
+        r'url=["\']([^"\']+\.(?:jpg|jpeg|png|gif|webp))', re.IGNORECASE
+    )
+
+    def _extract_image_url(self, entry, content: str = "") -> Optional[str]:
+        """
+        RSS entry'sinden haber kapak resmi URL'si çıkar.
+
+        Kaynak sırası:
+        1) media_content (Media RSS)
+        2) media_thumbnail
+        3) enclosures (image/* mime type)
+        4) links (rel="enclosure" + image type)
+        5) <img src="..."> tag'i (description/content/summary HTML'inde)
+        6) media:url regex (description'da)
+        """
+        try:
+            # 1) Media RSS - media:content
+            media_content = getattr(entry, 'media_content', None)
+            if media_content and isinstance(media_content, list):
+                for m in media_content:
+                    url = (m.get('url') if isinstance(m, dict) else None) or ''
+                    if url:
+                        return url
+
+            # 2) Media RSS - media:thumbnail
+            media_thumb = getattr(entry, 'media_thumbnail', None)
+            if media_thumb and isinstance(media_thumb, list):
+                for m in media_thumb:
+                    url = (m.get('url') if isinstance(m, dict) else None) or ''
+                    if url:
+                        return url
+
+            # 3) enclosures
+            enclosures = getattr(entry, 'enclosures', None)
+            if enclosures and isinstance(enclosures, list):
+                for enc in enclosures:
+                    if not isinstance(enc, dict):
+                        continue
+                    enc_type = (enc.get('type') or '').lower()
+                    href = enc.get('href') or enc.get('url') or ''
+                    if href and (enc_type.startswith('image/') or
+                                 href.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp'))):
+                        return href
+
+            # 4) links (rel=enclosure)
+            links = getattr(entry, 'links', None)
+            if links and isinstance(links, list):
+                for lnk in links:
+                    if not isinstance(lnk, dict):
+                        continue
+                    if lnk.get('rel') == 'enclosure':
+                        lnk_type = (lnk.get('type') or '').lower()
+                        href = lnk.get('href') or ''
+                        if href and lnk_type.startswith('image/'):
+                            return href
+
+            # 5) <img> tag (HTML icerikten)
+            html_sources = [
+                content or '',
+                getattr(entry, 'description', '') or '',
+                getattr(entry, 'summary', '') or '',
+            ]
+            for html in html_sources:
+                if not html:
+                    continue
+                m = self._IMG_TAG_RE.search(html)
+                if m:
+                    return m.group(1)
+
+            # 6) media url regex (CDATA icinde gomulu)
+            for html in html_sources:
+                if not html:
+                    continue
+                m = self._MEDIA_URL_RE.search(html)
+                if m:
+                    return m.group(1)
+
+        except Exception as e:
+            self.logger.debug(f"Image extract hatasi: {e}")
+
+        return None
     
     def filter_news_by_stock(self, news_list: List[Dict], stock_symbol: str) -> List[Dict]:
         """

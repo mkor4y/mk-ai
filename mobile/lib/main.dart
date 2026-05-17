@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'config/app_theme.dart';
 import 'config/app_router.dart';
 
@@ -20,6 +21,9 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('.env dosyası yüklenemedi, varsayılan ayarlar kullanılacak.');
   }
+
+  // Turkce tarih formatlari (DateFormat('dd MMM', 'tr_TR') icin)
+  await initializeDateFormatting('tr_TR');
 
   // Status bar stilini ayarla (şeffaf, beyaz ikonlar)
   SystemChrome.setSystemUIOverlayStyle(

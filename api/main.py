@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+import re
 import sys
 import os
 
@@ -174,59 +175,216 @@ async def analyze_stock(stock_code: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/market/summary")
-async def get_market_summary():
-    """Dashboard için piyasa özeti ve popüler hisseler"""
+@app.get("/api/chart/{stock_code}")
+async def get_chart_data(stock_code: str, range: str = "1A"):
+    """
+    Hisse fiyat grafigi icin OHLCV verisi.
+
+    Query params:
+        range: 1H (7g), 1A (30g), 3A (90g), 6A (180g), 1Y (365g)
+
+    Response:
+        { success, stock, range, candles: [{t, o, h, l, c, v}, ...] }
+        t = unix epoch in milliseconds (DateTime.fromMillisecondsSinceEpoch icin)
+    """
     try:
-        # BIST Endeksleri
-        indices_to_fetch = [
-            {"symbol": "XU100", "name": "BIST 100"},
-            {"symbol": "XU030", "name": "BIST 30"}
-        ]
-        
-        indices_data = []
-        for index in indices_to_fetch:
-            info = analyzer.get_stock_info(index["symbol"])
-            if info:
-                indices_data.append({
-                    "name": index["name"],
-                    "value": f"{info.get('current_price', 0):,.2f}",
-                    "change": f"{info.get('price_change_24h', 0):+.2f}%",
-                    "up": info.get('price_change_24h', 0) >= 0
-                })
-        
-        # Popüler Hisseler (Watchlist)
-        # config.SUPPORTED_BIST_STOCKS listesinden ilk 6 tanesi
-        watchlist_symbols = config.SUPPORTED_BIST_STOCKS[:6]
-        watchlist_data = []
-        
-        for symbol in watchlist_symbols:
-            info = analyzer.get_stock_info(symbol)
-            if info:
-                watchlist_data.append({
-                    "symbol": symbol,
-                    "name": info.get('name', symbol),
-                    "price": f"{info.get('current_price', 0):.2f}",
-                    "change": f"{info.get('price_change_24h', 0):+.2f}%",
-                    "up": info.get('price_change_24h', 0) >= 0
-                })
-                
+        stock_code = stock_code.upper()
+
+        if stock_code not in config.SUPPORTED_BIST_STOCKS:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Desteklenmeyen hisse: {stock_code}",
+            )
+
+        days_map = {"1H": 7, "1A": 30, "3A": 90, "6A": 180, "1Y": 365}
+        range_key = range.upper()
+        days = days_map.get(range_key, 30)
+
+        df = analyzer.get_stock_data(stock_code, days=max(days, 60))
+        if df is None or df.empty:
+            return {
+                "success": False,
+                "error": f"{stock_code} icin grafik verisi bulunamadi",
+                "candles": [],
+            }
+
+        df = df.tail(days)
+        candles = []
+        for ts, row in df.iterrows():
+            try:
+                t_ms = int(ts.timestamp() * 1000)
+            except Exception:
+                continue
+            candles.append({
+                "t": t_ms,
+                "o": float(row.get("open", 0) or 0),
+                "h": float(row.get("high", 0) or 0),
+                "l": float(row.get("low", 0) or 0),
+                "c": float(row.get("close", 0) or 0),
+                "v": float(row.get("volume", 0) or 0),
+            })
+
         return {
             "success": True,
-            "indices": indices_data,
-            "watchlist": watchlist_data,
-            "timestamp": datetime.now().isoformat()
+            "stock": stock_code,
+            "range": range_key,
+            "candles": candles,
         }
-        
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ---- /api/market/summary icin basit TTL cache + paralel fetch ----
+import time as _time
+from concurrent.futures import ThreadPoolExecutor as _Executor
+
+_MARKET_CACHE: dict = {"data": None, "expires_at": 0.0}
+_MARKET_CACHE_TTL_SECONDS = 60  # 1 dakika cache
+
+
+def _fetch_symbol_info(symbol: str):
+    """Tek bir sembol icin info cek (executor icinden cagrilir)."""
+    try:
+        return symbol, analyzer.get_stock_info(symbol)
+    except Exception:
+        return symbol, None
+
+
+def _build_market_summary() -> dict:
+    """Tum endeks + watchlist verilerini paralel cek."""
+    indices_to_fetch = [
+        {"symbol": "XU100", "name": "BIST 100"},
+        {"symbol": "XU030", "name": "BIST 30"},
+    ]
+    watchlist_symbols = config.SUPPORTED_BIST_STOCKS[:6]
+
+    all_symbols = [i["symbol"] for i in indices_to_fetch] + list(watchlist_symbols)
+
+    # Paralel fetch (8 sembol icin 8 worker)
+    results: dict = {}
+    with _Executor(max_workers=len(all_symbols)) as executor:
+        for symbol, info in executor.map(_fetch_symbol_info, all_symbols):
+            results[symbol] = info
+
+    indices_data = []
+    for idx in indices_to_fetch:
+        info = results.get(idx["symbol"])
+        if info:
+            indices_data.append({
+                "name": idx["name"],
+                "value": f"{info.get('current_price', 0):,.2f}",
+                "change": f"{info.get('price_change_24h', 0):+.2f}%",
+                "up": info.get('price_change_24h', 0) >= 0,
+            })
+
+    watchlist_data = []
+    for symbol in watchlist_symbols:
+        info = results.get(symbol)
+        if info:
+            watchlist_data.append({
+                "symbol": symbol,
+                "name": info.get('name', symbol),
+                "price": f"{info.get('current_price', 0):.2f}",
+                "change": f"{info.get('price_change_24h', 0):+.2f}%",
+                "up": info.get('price_change_24h', 0) >= 0,
+            })
+
+    return {
+        "success": True,
+        "indices": indices_data,
+        "watchlist": watchlist_data,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
+@app.get("/api/market/summary")
+async def get_market_summary(force: bool = False):
+    """Dashboard için piyasa özeti + popüler hisseler (paralel + cache)."""
+    now = _time.time()
+    cache_valid = (
+        _MARKET_CACHE["data"] is not None
+        and _MARKET_CACHE["expires_at"] > now
+        and not force
+    )
+    if cache_valid:
+        # cache'den dondur ama "cached" flag eklemeden (mobile bilmesin)
+        return _MARKET_CACHE["data"]
+
+    try:
+        data = _build_market_summary()
+        _MARKET_CACHE["data"] = data
+        _MARKET_CACHE["expires_at"] = now + _MARKET_CACHE_TTL_SECONDS
+        return data
     except Exception as e:
         import traceback
         print(traceback.format_exc())
+        # Hata varsa eski cache'i fallback olarak don
+        if _MARKET_CACHE["data"] is not None:
+            return _MARKET_CACHE["data"]
         return {
             "success": False,
             "error": str(e),
             "indices": [],
-            "watchlist": []
+            "watchlist": [],
         }
+
+
+@app.get("/api/quotes")
+async def get_quotes(codes: str = ""):
+    """
+    Birden fazla hisse icin tek seferde guncel fiyat + gunluk degisim.
+    Mobil portfoy ekrani icin hafif batch endpoint.
+
+    Query:
+        codes: virgulle ayrilmis BIST sembolleri (orn. THYAO,GARAN,AKBNK).
+               Max 25 sembol kabul edilir, fazlasi atilir.
+
+    Response:
+        {
+          "success": true,
+          "quotes": {
+            "THYAO": {"price": 245.5, "change_pct": 1.2, "name": "Turk Hava Yollari"},
+            ...
+          }
+        }
+    """
+    # Whitelisted, deduplicated, uppercased symbols
+    requested = [s.strip().upper() for s in codes.split(",") if s.strip()]
+    seen: set = set()
+    symbols: list = []
+    for s in requested:
+        if s in seen:
+            continue
+        if s not in config.SUPPORTED_BIST_STOCKS:
+            continue
+        seen.add(s)
+        symbols.append(s)
+        if len(symbols) >= 25:
+            break
+
+    if not symbols:
+        return {"success": True, "quotes": {}}
+
+    quotes: dict = {}
+    try:
+        max_workers = min(len(symbols), 8)
+        with _Executor(max_workers=max_workers) as executor:
+            for symbol, info in executor.map(_fetch_symbol_info, symbols):
+                if not info:
+                    continue
+                quotes[symbol] = {
+                    "price": float(info.get("current_price", 0) or 0),
+                    "change_pct": float(info.get("price_change_24h", 0) or 0),
+                    "name": info.get("name", symbol),
+                }
+        return {"success": True, "quotes": quotes}
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return {"success": False, "error": str(e), "quotes": quotes}
 
 
 @app.get("/api/news")
@@ -235,21 +393,41 @@ async def get_all_news():
     try:
         raw_news = news_helper.fetch_all_news()
         formatted_news = []
-        for n in raw_news[:30]:  # Son 30 haberi döndür
+        for n in raw_news[:50]:  # Son 50 haberi döndür
             pub = n.get('published')
             if isinstance(pub, datetime):
                 date_str = pub.strftime('%d.%m.%Y %H:%M')
+                iso_str = pub.isoformat()
             else:
                 date_str = str(pub) if pub else ""
-                
+                iso_str = ""
+
+            # HTML etiketlerini description'dan temizle (mobilde duz metin gosterilecek)
+            raw_desc = (n.get('description') or '').strip()
+            clean_desc = _strip_html(raw_desc)[:280]
+
+            # Duyarlilik hesapla (mobilde baslik rengi icin)
+            sentiment_text = f"{n.get('title', '')} {clean_desc}"
+            score = news_helper._calculate_sentiment(sentiment_text)
+            if score > 0.005:
+                sentiment_label = "positive"
+            elif score < -0.005:
+                sentiment_label = "negative"
+            else:
+                sentiment_label = "neutral"
+
             formatted_news.append({
                 "title": n.get('title', ''),
-                "description": n.get('description', ''),
+                "description": clean_desc,
                 "link": n.get('link', ''),
                 "published": date_str,
-                "source": n.get('source', '')
+                "published_iso": iso_str,
+                "source": n.get('source', ''),
+                "image": n.get('image'),
+                "sentiment": sentiment_label,
+                "sentiment_score": score,
             })
-            
+
         return {
             "success": True,
             "news": formatted_news,
@@ -261,6 +439,27 @@ async def get_all_news():
             "error": str(e),
             "news": []
         }
+
+
+_HTML_TAG_RE = re.compile(r'<[^>]+>')
+_HTML_ENTITY_RE = re.compile(r'&(?:nbsp|amp|lt|gt|quot|#039);')
+_HTML_ENTITY_MAP = {
+    '&nbsp;': ' ',
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#039;': "'",
+}
+
+
+def _strip_html(text: str) -> str:
+    """Description icindeki HTML etiketlerini ve entity'leri temizle."""
+    if not text:
+        return ''
+    text = _HTML_TAG_RE.sub('', text)
+    text = _HTML_ENTITY_RE.sub(lambda m: _HTML_ENTITY_MAP.get(m.group(0), ''), text)
+    return ' '.join(text.split())
 
 
 # ============= TELEGRAM BOTU İLE AYNI FONKSİYONLAR =============
