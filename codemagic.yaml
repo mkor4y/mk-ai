@@ -35,25 +35,82 @@ workflows:
           flutter --version
           xcodebuild -version
 
-      - name: Pub paketlerini al
+      - name: Pub paketleri ve iOS config
         working_directory: mobile
         script: |
           flutter pub get
+          # Podfile + Generated.xcconfig olusturur, tam build yapmaz
+          flutter build ios --config-only --release --no-codesign
 
-      - name: iOS pod install
+      - name: Pod install (imzasiz)
         working_directory: mobile/ios
         script: |
-          # Podfile yoksa flutter pub get sirasinda olusur, ama yine de garanti olsun
+          set -euo pipefail
+          # Flutter Podfile'daki post_install icine pod imzasini kapat
+          if [ -f Podfile ] && ! grep -q "CM_DISABLE_POD_SIGNING" Podfile; then
+            ruby -e "
+              podfile = File.read('Podfile')
+              needle = \"flutter_additional_ios_build_settings(target)\"
+              inject = <<-RUBY
+    # CM_DISABLE_POD_SIGNING — Codemagic imzasiz build
+    target.build_configurations.each do |config|
+      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+      config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+      config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = ''
+    end
+              RUBY
+              if podfile.include?(needle)
+                podfile.sub!(needle, needle + inject)
+                File.write('Podfile', podfile)
+              end
+            "
+          fi
           pod install --repo-update
 
       - name: Flutter iOS build (imzasiz, release)
         working_directory: mobile
         script: |
-          flutter build ios \
+          set -euo pipefail
+          export CODE_SIGNING_ALLOWED=NO
+          export CODE_SIGNING_REQUIRED=NO
+          export CODE_SIGN_IDENTITY=""
+          export DEVELOPMENT_TEAM=""
+
+          # Birincil: Flutter (imzasiz)
+          if flutter build ios \
             --release \
             --no-codesign \
             --build-name=1.0.0 \
-            --build-number=$(($BUILD_NUMBER + 1))
+            --build-number=$(($BUILD_NUMBER + 1)); then
+            echo "Flutter build basarili"
+            exit 0
+          fi
+
+          echo "Flutter build team hatasi verdi; xcodebuild ile deneniyor..."
+          cd ios
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$CM_BUILD_DIR/mobile/build/ios_derived" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            build
+
+          APP_SRC="$CM_BUILD_DIR/mobile/build/ios_derived/Build/Products/Release-iphoneos/Runner.app"
+          APP_DST="$CM_BUILD_DIR/mobile/build/ios/iphoneos/Runner.app"
+          if [ ! -d "$APP_SRC" ]; then
+            echo "HATA: Runner.app bulunamadi: $APP_SRC"
+            exit 1
+          fi
+          mkdir -p "$(dirname "$APP_DST")"
+          rm -rf "$APP_DST"
+          cp -R "$APP_SRC" "$APP_DST"
+          echo "xcodebuild ile Runner.app kopyalandi"
 
       - name: Imzasiz .ipa paketle (Sideloadly icin)
         script: |
