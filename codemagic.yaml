@@ -78,14 +78,14 @@ workflows:
       - mobile/build/ios/iphoneos/Runner.app
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
 
-    publishing:
-      # Build bitince mailine indirme linki dusturmek icin:
-      # Kendi email'ini ekle, virgulle birden cok adres de olabilir.
-      email:
-        recipients: []  # ornek: ["mustafa@example.com"]
-        notify:
-          success: true
-          failure: true
+    # E-posta bildirimi istiyorsan publishing blogunu ac; recipients bos olamaz.
+    # publishing:
+    #   email:
+    #     recipients:
+    #       - senin@email.com
+    #     notify:
+    #       success: true
+    #       failure: true
 
   # =========================================================================
   # ANDROID UNSIGNED APK — Telefona dogrudan kurulabilir (Bilinmeyen Kaynaklar acik olmalı)
@@ -119,10 +119,3 @@ workflows:
 
     artifacts:
       - mobile/build/app/outputs/flutter-apk/*.apk
-
-    publishing:
-      email:
-        recipients: []
-        notify:
-          success: true
-          failure: true
