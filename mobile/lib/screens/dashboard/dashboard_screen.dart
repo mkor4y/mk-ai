@@ -191,8 +191,8 @@ class _GreetingHeader extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
                 Text(
                   greeting,
                   maxLines: 1,
@@ -569,9 +569,9 @@ class _QuickSearchState extends State<_QuickSearch> {
         ),
       ),
       child: TextField(
-        controller: _ctrl,
+      controller: _ctrl,
         focusNode: _focus,
-        textCapitalization: TextCapitalization.characters,
+      textCapitalization: TextCapitalization.characters,
         style: const TextStyle(
           color: AppTheme.textPrimary,
           fontWeight: FontWeight.w600,
@@ -587,7 +587,7 @@ class _QuickSearchState extends State<_QuickSearch> {
           ),
           prefixIcon: Icon(Icons.search_rounded,
               color: AppTheme.textMuted, size: 20),
-          border: InputBorder.none,
+        border: InputBorder.none,
           contentPadding:
               EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         ),

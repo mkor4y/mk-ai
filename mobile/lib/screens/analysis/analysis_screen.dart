@@ -78,17 +78,17 @@ class AnalysisScreen extends ConsumerWidget {
           loading: () => _buildLoading(),
           error: (e, _) => _buildError(
               e.toString(), () => ref.invalidate(analysisProvider(stockCode))),
-          data: (result) {
-            if (!result.success || result.stockInfo == null) {
+        data: (result) {
+          if (!result.success || result.stockInfo == null) {
               return Center(
                 child: Text(
                   result.error ?? 'Veri çekilemedi',
                   style: const TextStyle(color: AppTheme.stockDown),
                 ),
               );
-            }
-            return _buildContent(result);
-          },
+          }
+          return _buildContent(result);
+        },
         ),
       ),
     );
@@ -166,18 +166,18 @@ class AnalysisScreen extends ConsumerWidget {
 
         // ============ AI KARAR KARTI ============
         if (signals != null) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
             child: _AiDecisionCard(signals: signals)
                 .animate(delay: 200.ms)
                 .fadeIn()
                 .slideY(begin: 0.1, end: 0),
           ),
-          const SizedBox(height: 32),
-        ],
+                const SizedBox(height: 32),
+              ],
 
         // ============ TEKNIK GOSTERGELER (gorsel) ============
-        if (tech != null) ...[
+              if (tech != null) ...[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -230,10 +230,10 @@ class AnalysisScreen extends ConsumerWidget {
               ],
             ),
           ),
-        ],
+              ],
 
         // ============ AI YORUM ============
-        if (result.aiAnalysis != null && result.aiAnalysis!.isNotEmpty) ...[
+              if (result.aiAnalysis != null && result.aiAnalysis!.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -338,20 +338,20 @@ class AnalysisScreen extends ConsumerWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
             const Icon(Icons.warning_rounded,
                 size: 48, color: AppTheme.textMuted),
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
             Text(
               msg,
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
             ),
-            const SizedBox(height: 24),
-            ElevatedButton(onPressed: onRetry, child: const Text('Tekrar Dene')),
-          ],
+          const SizedBox(height: 24),
+          ElevatedButton(onPressed: onRetry, child: const Text('Tekrar Dene')),
+        ],
         ),
       ),
     );
@@ -1258,8 +1258,8 @@ class _BollingerIndicator extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
               Text('${lower.toStringAsFixed(2)} ₺',
                   style: const TextStyle(fontSize: 10, color: AppTheme.textMuted)),
               Text('${middle.toStringAsFixed(2)} ₺',
@@ -1367,16 +1367,16 @@ class _PriceChartSection extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 8, right: 24),
       child: LineChart(
-        LineChartData(
+      LineChartData(
           minY: minY - yPadding,
           maxY: maxY + yPadding,
-          gridData: const FlGridData(show: false),
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          lineTouchData: LineTouchData(
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (_) => AppTheme.bgTertiary,
-              tooltipRoundedRadius: 8,
+        gridData: const FlGridData(show: false),
+        titlesData: const FlTitlesData(show: false),
+        borderData: FlBorderData(show: false),
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipColor: (_) => AppTheme.bgTertiary,
+            tooltipRoundedRadius: 8,
               tooltipPadding: const EdgeInsets.symmetric(
                 horizontal: 10,
                 vertical: 6,
@@ -1407,31 +1407,31 @@ class _PriceChartSection extends ConsumerWidget {
                   ],
                 );
               }).toList(),
-            ),
-            handleBuiltInTouches: true,
           ),
-          lineBarsData: [
-            LineChartBarData(
+          handleBuiltInTouches: true,
+        ),
+        lineBarsData: [
+          LineChartBarData(
               spots: spots,
-              isCurved: true,
+            isCurved: true,
               curveSmoothness: 0.2,
-              color: color,
-              barWidth: 2.5,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [
+            color: color,
+            barWidth: 2.5,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: false),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [
                     color.withValues(alpha: 0.18),
-                    color.withValues(alpha: 0.0),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
+                  color.withValues(alpha: 0.0),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
-          ],
+          ),
+        ],
         ),
       ),
     );

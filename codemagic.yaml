@@ -23,6 +23,8 @@ workflows:
       vars:
         BUNDLE_ID: "com.mkoray.mkai"
         APP_NAME: "MK AI"
+        # pubspec assets: .env — CI'da asagidaki script yazar (yerel .gitignore)
+        API_BASE_URL: "https://m-koray.online/api"
     cache:
       cache_paths:
         - $HOME/Library/Caches/CocoaPods
@@ -38,6 +40,9 @@ workflows:
       - name: Pub paketleri ve iOS config
         working_directory: mobile
         script: |
+          set -euo pipefail
+          # pubspec.yaml .env asset ister; clone'da yok (.gitignore)
+          printf 'API_BASE_URL=%s\n' "${API_BASE_URL:-https://m-koray.online/api}" > .env
           flutter pub get
           # Podfile + Generated.xcconfig olusturur, tam build yapmaz
           flutter build ios --config-only --release --no-codesign
@@ -136,6 +141,8 @@ workflows:
     max_build_duration: 45
     environment:
       flutter: stable
+      vars:
+        API_BASE_URL: "https://m-koray.online/api"
     cache:
       cache_paths:
         - $HOME/.pub-cache
@@ -147,7 +154,10 @@ workflows:
 
       - name: Pub paketleri
         working_directory: mobile
-        script: flutter pub get
+        script: |
+          set -euo pipefail
+          printf 'API_BASE_URL=%s\n' "${API_BASE_URL:-https://m-koray.online/api}" > .env
+          flutter pub get
 
       - name: Android APK build (release, debug-imzali)
         working_directory: mobile
