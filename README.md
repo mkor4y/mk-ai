@@ -2,7 +2,7 @@
 
 Borsa İstanbul (BIST) yatırımcıları için yapay zekâ destekli karar destek platformu. Teknik analiz, haber duyarlılığı ve AI yorumlarını **mobil uygulama**, **REST API**, **Telegram bot** ve **web panel** üzerinden sunar.
 
-> ⚠️ **Yatırım tavsiyesi değildir.** Bilgilendirme amaçlıdır. Kendi araştırmanıza dayanın.
+> ⚠️ **DİKKAT.** yaklaşık bir ay önce geliştirmeye başladığım basit bir Borsa İstanbul (BIST) Telegram botuna yenilikçi özellikler ekleyerek ortaya çıkmıştır 1 ay önceki projeyle ilişiği bulunmamaktadır.
 
 **Canlı API:** https://m-koray.online/api  
 **GitHub:** https://github.com/mkor4y/mk-ai
