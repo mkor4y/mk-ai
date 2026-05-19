@@ -1,460 +1,317 @@
-# 🤖 MK AI — Girişimcilik Merkezi Başvuru Dokümanı
+# MK AI — BTK Yapay Zeka Hackathon Başvuru Dokümanı
 
 ---
 
-## 📌 Proje Kimliği
+## Başvuru Özeti
 
-| Bilgi | Detay |
-|-------|-------|
+| Alan | Bilgi |
+|------|--------|
+| **Yarışma** | BTK Yapay Zeka Hackathon |
 | **Proje Adı** | MK AI — Akıllı Yatırım Asistanı |
-| **Slogan** | *"İşletmeler İçin Akıl, Müşteriler İçin Değer."* |
-| **Geliştirici** | Mustafa Koray Kök |
-| **Kategori** | FinTech / Yapay Zekâ / Veri Analitiği |
-| **Hedef Pazar** | Türkiye — Borsa İstanbul (BIST) Yatırımcıları |
-| **Tarih** | Şubat 2026 |
+| **Slogan** | *Akıllı Yatırım Asistanı* |
+| **Geliştirici / Takım** | Mustafa Koray Kök |
+| **Kategori** | Yapay Zekâ · FinTech · Karar Destek Sistemleri |
+| **Hedef Pazar** | Türkiye — Borsa İstanbul (BIST)  yatırımcıları |
+| **Durum** | Çalışan MVP (API + Mobil + Telegram + Web) |
+| **Güncelleme** | Mayıs 2026 |
 
 ---
 
-## 1. 🎯 Proje Özeti
+## 1. Proje Özeti ve Gelişim Hikayesi
 
-**MK AI**, Borsa İstanbul (BIST) yatırımcıları için geliştirilmiş, yapay zekâ destekli kapsamlı bir yatırım analiz platformudur. Teknik analiz, haber duyarlılık analizi ve AI tabanlı yorumları tek bir çatı altında birleştirerek bireysel yatırımcılara profesyonel düzeyde bir **karar destek sistemi** sunar.
+**MK AI**, **çok kanallı, yapay zekâ destekli ve manipülasyona karşı çok katmanlı kurgulanmış** bir karar destek ekosistemine dönüşmüştür.
 
-Platform, **4 farklı erişim kanalı** üzerinden hizmet verir:
-- 🤖 **Telegram Bot** — Mobil erişim, anlık komutlarla analiz
-- 🌐 **Web Dashboard** — Kapsamlı görselleştirme ve interaktif analiz
-- 🖥️ **Desktop Uygulaması** — Electron tabanlı masaüstü deneyimi
-- 🔌 **REST API** — Üçüncü parti entegrasyonlar için FastAPI altyapısı
+İlk sürümde yalnızca temel fiyat sorgulama ve sınırlı analiz vardı. Kullanıcı geri bildirimleri ve teknik ihtiyaçlar doğrultusunda sistem; **FastAPI REST API**, **Flutter mobil uygulama**, **web panel**, **Telegram bot** ve **yapay zekâ sohbet katmanı** ile genişletildi. Amaç, yatırımcının tek bir kaynağa veya yüzeysel sinyale bağımlı kalmadan; **ölçülebilir teknik göstergeler**, **haber duyarlılığı** ve **yapılandırılmış AI yorumları** ile bilinçli karar vermesine yardımcı olmaktır.
+
+> **Önemli:** MK AI yatırım tavsiyesi vermez; bilgilendirme ve analiz amaçlıdır. Tüm yatırım kararları kullanıcının kendi sorumluluğundadır.
 
 ---
 
-## 2. ❓ Problem Tanımı
+## 2. Problem Tanımı
 
-### Türkiye'de Bireysel Yatırımcının Sorunları
+### Türkiye'de bireysel yatırımcının sorunları
 
-1. **Yüksek Maliyet**: Profesyonel analiz araçları (Bloomberg Terminal, Reuters Eikon vb.) yıllık **25.000–50.000 USD** maliyetlidir. Bireysel yatırımcılar bu araçlara erişemez.
+1. **Yüksek maliyet:** Profesyonel terminal ve analiz araçları bireysel bütçeler için erişilemez düzeydedir.
+2. **Bilgi dağınıklığı:** Teknik analiz, haber ve yorum farklı platformlarda; entegre karar desteği zayıftır.
+3. **Manipülasyon ve gürültü:** Sosyal medyada tek haber veya yönlendirme ile alınan kararlar yanıltıcı olabilir.
+4. **Dil ve yerellik:** Uluslararası araçlar BIST ve Türkçe kullanıcı ihtiyacına tam odaklanmaz.
+5. **Finansal okuryazarlık:** RSI, MACD, Bollinger gibi göstergelerin doğru yorumlanması uzmanlık ister.
 
-2. **Bilgi Dağınıklığı**: Teknik analiz yapmak için birden fazla platform ve araç kullanmak gerekir. Yatırımcı RSI için bir site, MACD için başka bir araç, haberler için farklı kaynaklar kullanmak zorundadır.
+### Rakamlarla bağlam
 
-3. **Haber Etkisinin Anlaşılamaması**: Haberlerin hisse senedi fiyatları üzerindeki etkisini analiz etmek uzmanlık ve zaman gerektirir. Bireysel yatırımcı haberleri tek tek okuyup yorumlayamaz.
-
-4. **Dil Bariyeri**: Mevcut profesyonel analiz araçlarının büyük çoğunluğu İngilizce'dir ve Türk piyasasına özgü analizler sunmaz.
-
-5. **Finansal Okuryazarlık Eksikliği**: Bireysel yatırımcıların önemli bir kısmı teknik göstergeleri (RSI, MACD, Bollinger vb.) bilmez veya doğru yorumlayamaz.
-
-### Rakamlarla Problem
-
-- Türkiye'de **~8 milyon** bireysel yatırımcı hesabı bulunmaktadır (SPK, 2025).
-- Bu yatırımcıların **%80'den fazlası** profesyonel analiz aracı kullanmamaktadır.
-- Yanlış yatırım kararları nedeniyle bireysel yatırımcıların büyük çoğunluğu zarar etmektedir.
+- Türkiye'de milyonlarca bireysel yatırımcı hesabı bulunmaktadır (SPK verileri).
+- Büyük çoğunluk profesyonel analiz araçlarına erişememektedir.
+- Dijital kanallarda hızlı yayılan bilgi kirliliği bilinçli kararı zorlaştırmaktadır.
 
 ---
 
-## 3. ✅ Çözüm: MK AI
+## 3. Çözüm: MK AI
 
-MK AI, yukarıdaki tüm problemleri **tek bir platformda** çözer:
+MK AI, yukarıdaki problemleri **tek ekosistemde** ele alır:
 
-| Problem | MK AI Çözümü |
-|---------|-------------|
-| Yüksek maliyet | Ücretsiz/düşük maliyetli erişim |
-| Bilgi dağınıklığı | Tüm analizler tek platformda |
-| Haber etkisi | Otomatik duyarlılık analizi |
-| Dil bariyeri | %100 Türkçe arayüz |
-| Finansal okuryazarlık | Entegre eğitim modülü |
+| Problem | MK AI yaklaşımı |
+|---------|------------------|
+| Yüksek maliyet | Freemium / düşük maliyetli erişim hedefi |
+| Bilgi dağınıklığı | Teknik analiz + haber + AI tek platformda |
+| Manipülasyon / gürültü | Çok kaynaklı haber, kural tabanlı göstergeler, şeffaf skorlar |
+| Dil bariyeri | %100 Türkçe arayüz ve yorumlar |
+| Okuryazarlık | Eğitim modülü + sadeleştirilmiş AI açıklamaları |
 
-### Nasıl Çalışır?
+### Sistem akışı
 
 ```
-Kullanıcı → Hisse kodu girer (örn: THYAO)
-    ↓
-MK AI → Gerçek zamanlı veri çeker (TradingView)
-    ↓
-Teknik Analiz Motoru → RSI, MACD, Bollinger, ADX hesaplar
-    ↓
-Haber Motoru → 12+ kaynaktan haber toplar, duyarlılık analizi yapar
-    ↓
-AI Motoru → Tüm verileri yorumlar, kısa/orta/uzun vadeli beklenti üretir
-    ↓
-Kullanıcı → Kapsamlı analiz raporu + AL/SAT/BEKLE sinyali alır
+Kullanıcı (Mobil / Web / Telegram / API)
+        ↓
+    FastAPI REST API
+        ↓
+┌───────────────┬────────────────┬─────────────────┐
+│ BIST Analyzer │  News Helper   │  AI Helper      │
+│ (Teknik)      │  (Duyarlılık)  │  (LLM yorum)    │
+└───────────────┴────────────────┴─────────────────┘
+        ↓
+TradingView verisi · RSS/NewsAPI · Groq / OpenRouter
+        ↓
+AL/SAT/BEKLE sinyali · güven skoru · rapor · sohbet yanıtı
 ```
 
----
+### Manipülasyondan etkilenmeme yaklaşımı
 
-## 4. 💎 Değer Önerisi
+Sistem, **tek bir başlığa veya sosyal medya yönlendirmesine körü körüne tepki vermez**:
 
-> **"MK AI, bireysel yatırımcıların profesyonel analiz araçlarına erişimini demokratikleştirerek, yapay zekâ destekli teknik analiz, haber duyarlılık analizi ve kişiselleştirilmiş yatırım önerileriyle doğru kararlar almasını sağlar."**
-
-### Müşteriye Sağlanan Somut Değerler
-
-| Değer | Açıklama | Etki |
-|-------|----------|------|
-| 💰 **Maliyet Tasarrufu** | Profesyonel araçların sunduğu analizleri düşük maliyetle sunar | Yıllık binlerce dolar tasarruf |
-| ⏱️ **Zaman Tasarrufu** | Saatler süren analiz sürecini saniyeye indirir | Günde 2-3 saat zaman kazanımı |
-| 🎓 **Eğitim Değeri** | Yatırımcıya teknik göstergeleri ve stratejiyi öğretir | Finansal okuryazarlık artışı |
-| 🇹🇷 **Yerellik** | BIST'e özel, tamamen Türkçe | Dil bariyeri sorunu ortadan kalkar |
-| 📊 **Doğru Karar Desteği** | Al/Sat/Bekle sinyalleri + güven skoru | Bilinçli yatırım kararları |
-| 🔄 **Çok Kanallı Erişim** | Telegram, Web, Desktop, API | Her yerden, her cihazdan erişim |
+- **Teknik katman:** RSI, MACD, ADX, Bollinger, hareketli ortalamalar — önceden tanımlı matematiksel kurallar.
+- **Haber katmanı:** 12+ RSS kaynağı + NewsAPI; anahtar kelime eşleştirme; pozitif/negatif/nötr duyarlılık skoru.
+- **AI katmanı:** Tüm teknik ve haber çıktıları yapılandırılmış prompt ile modele verilir; serbest uydurma yerine **bağlama dayalı özet**.
+- **Şeffaflık:** Güven skoru, risk seviyesi ve risk uyarısı her analizde gösterilir.
 
 ---
 
-## 5. 📊 Temel Özellikler
+## 4. Yapay Zekâ Kullanımı (Hackathon Odak Alanı)
 
-### 5.1 Teknik Analiz Motoru
-- **RSI** (Relative Strength Index) — Aşırı alım/aşırı satım tespiti
-- **MACD** (Moving Average Convergence Divergence) — Trend değişim sinyalleri
-- **Bollinger Bantları** — Volatilite analizi ve fırsat tespiti
-- **ADX** (Average Directional Index) — Trend gücü ölçümü
-- **Hareketli Ortalamalar** — SMA 20, 50, 100, 200 günlük
-- **Hacim Analizi** — Hacim bazlı sinyal üretimi
-- **Gap Analizi** — Fiyat boşlukları tespiti
+BTK Yapay Zeka Hackathon kapsamında MK AI'nın AI bileşenleri:
 
-### 5.2 Trading Sinyalleri
-- **AL / SAT / BEKLE** sinyalleri — Net yönlendirme
-- **Güven Skoru** (0-100%) — Sinyalin güvenilirlik derecesi
-- **Risk Seviyesi** — Düşük / Orta / Yüksek kategorileri
-- **Sinyal Gücü** — Zayıf / Orta / Güçlü / Çok Güçlü
-- **Trend Rejimi** — Yatay / Zayıf Trend / Trend / Güçlü Trend
+| Bileşen | Teknoloji | Kullanım |
+|---------|-----------|----------|
+| **Hisse analiz özeti** | DeepSeek (OpenRouter), Llama 3.3 (Groq) | Kısa/orta/uzun vadeli beklenti, risk faktörleri |
+| **AI Chat** | Aynı LLM sağlayıcıları | Doğal dilde BIST ve teknik analiz soruları |
+| **Haber duyarlılığı** | Kural tabanlı NLP (anahtar kelime + skor) | Manipülatif tek kaynak yerine çoklu haber özeti |
+| **Sinyal birleştirme** | Kural motoru + AI yorum | AL/SAT/BEKLE ve güven skoru (%0–100) |
 
-### 5.3 Haber Analizi ve Duyarlılık
-- **12+ haber kaynağı** entegrasyonu (AA, BloombergHT, NTV, Habertürk, BBC, CNBC vb.)
-- **RSS + NewsAPI** çift katmanlı haber toplama
-- **Anahtar kelime eşleştirme** — Her hisse için özel kelime havuzu
-- **Duyarlılık skoru** — -1 ile +1 arası (Pozitif/Negatif/Nötr etiketleme)
-- **Hisse bazlı filtreleme** — Sadece ilgili haberleri gösterir
+### AI çıktılarının sınırları
 
-### 5.4 AI Destekli Analiz
-- **Kısa vadeli beklenti** (1-7 gün)
-- **Orta vadeli beklenti** (1-4 hafta)
-- **Uzun vadeli beklenti** (1-6 ay)
-- **Risk faktörleri** analizi
-- **Yatırımcı önerileri** — Kişiselleştirilmiş stratejiler
-- **AI modelleri**: DeepSeek Chat (OpenRouter), Llama 3.3 70B (Groq)
-
-### 5.5 Eğitim Modülü
-- Teknik Analiz Temelleri (Mum Grafikleri, Trend Çizgileri, Destek/Direnç)
-- RSI Göstergesi (Hesaplama, Aşırı Alım/Satım, Diverjans)
-- MACD Stratejileri (Bileşenler, Sinyal Kesişimleri, Histogram)
-- Bollinger Bantları (Squeeze Stratejisi, Breakout Tespiti)
-- Risk Yönetimi (Stop-Loss, Pozisyon Boyutu, Risk/Ödül Oranı)
-- Trading Psikolojisi (FOMO, Disiplin, Kayıp Yönetimi)
-
-### 5.6 AI Chat Asistanı
-- Doğal dilde soru-cevap (Türkçe)
-- Telegram tarzı komut sistemi (`/analyze`, `/price`, `/menu`)
-- Hızlı erişim butonları ve komut menüsü
-- Sohbet geçmişi ve bağlamsal yanıtlar
-
-### 5.7 Desteklenen Hisseler
-THYAO, GARAN, AKBNK, ASELS, KRDMD, TUPRS, ISCTR, YKBNK, HALKB, VAKBN, SISE, BIMAS, EREGL, HEKTS, SASA, FROTO, TOASO, KCHOL, SAHOL, DOFRB, BORLS, TUREX, KSTUR, TKFEN — **24 hisse ve artıyor.**
+- Model çıktıları **yatırım tavsiyesi değildir**; kullanıcıya bilgilendirme sunar.
+- Teknik göstergeler AI'dan bağımsız hesaplanır; AI yorumu bu verilere dayanır.
+- Hata durumunda API anlamlı hata mesajı döner; uygulama çökmez.
 
 ---
 
-## 6. 🏗️ Teknik Mimari
+## 5. Ürün Kanalları ve Özellikler
 
-### Platform Mimarisi
+### 5.1 Flutter Mobil Uygulama (MK AI)
+
+| Modül | Özellikler |
+|-------|------------|
+| **Dashboard** | BIST 100 hero kart, endeksler, favoriler, top movers, izleme listesi |
+| **Analiz** | OHLCV grafik (1H–1Y), RSI/MACD/ADX/MA/Bollinger, AI karar kartı |
+| **Haberler** | Kategori, arama, duyarlılık renkleri, kaydetme, in-app webview |
+| **AI Chat** | Markdown, geçmiş, hisse linkleri, öneri paneli |
+| **Portföy** | Pozisyon ekleme, canlı P/L, sektör pasta grafiği, DCA |
+| **Ayarlar** | Profil, bağlantı testi, veri sıfırlama |
+
+**Teknik:** Flutter, Riverpod, Dio, fl_chart, shared_preferences, Codemagic CI/CD.
+
+### 5.2 REST API (FastAPI)
+
+- `GET /api/market/summary` — Paralel fetch + 60 sn TTL cache
+- `GET /api/analyze/{code}` — Kapsamlı hisse analizi
+- `GET /api/chart/{code}?range=` — OHLCV grafik verisi
+- `GET /api/quotes?codes=` — Portföy için batch fiyat
+- `GET /api/news` — Haber + görsel + duyarlılık
+- `POST /api/chat` — AI sohbet
+
+**Canlı API:** https://m-koray.online/api
+
+### 5.3 Telegram Bot
+
+- `/analyze`, `/price`, `/menu`, `/education` komutları
+- Anlık analiz, haber özeti, AI yorumu
+- Kurulum gerektirmeden erişim
+
+### 5.4 Web Dashboard (Next.js)
+
+- Piyasa özeti, watchlist, teknik kartlar
+- PWA desteği
+
+### 5.5 Desktop (Electron)
+
+- Masaüstü deneyimi (mevcut kod tabanı)
+
+---
+
+## 6. Teknik Mimari
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    KULLANICI KATMANI                      │
-├──────────┬──────────┬──────────────┬─────────────────────┤
-│ Telegram │   Web    │   Desktop    │   Üçüncü Parti     │
-│   Bot    │Dashboard │ (Electron)   │   Entegrasyonlar    │
-├──────────┴──────────┴──────────────┴─────────────────────┤
-│                    API KATMANI                            │
-│              FastAPI (REST API)                           │
-├──────────────────────────────────────────────────────────┤
-│                  İŞ LOJİĞİ KATMANI                       │
-├──────────┬──────────────┬───────────────────────────────-┤
-│  BIST    │    Haber      │         AI                    │
-│Analyzer  │   Helper      │       Helper                  │
-│(Teknik)  │ (Duyarlılık)  │    (Yapay Zekâ)              │
-├──────────┴──────────────┴────────────────────────────────┤
-│                   VERİ KATMANI                            │
-├──────────┬──────────────┬────────────────────────────────┤
-│TradingView│  RSS Feeds  │   OpenRouter / Groq           │
-│(Fiyat)    │ + NewsAPI   │    (AI Modelleri)             │
-│           │ (Haberler)  │                                │
-└──────────┴──────────────┴────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    KULLANICI KATMANI                         │
+├──────────┬──────────┬────────────┬───────────┬──────────────┤
+│ Flutter  │   Web    │  Telegram  │  Desktop  │  3. parti    │
+│  Mobil   │ Next.js  │    Bot     │ Electron  │  entegrasyon │
+├──────────┴──────────┴────────────┴───────────┴──────────────┤
+│              FastAPI REST API (ASGI / cPanel Passenger)      │
+├──────────────┬─────────────────┬───────────────────────────┤
+│ BISTAnalyzer │   NewsHelper    │      ChatGPTHelper          │
+├──────────────┴─────────────────┴───────────────────────────┤
+│ TradingView · RSS/NewsAPI · Groq · OpenRouter                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Kullanılan Teknolojiler
+### Teknoloji yığını
 
-| Katman | Teknoloji | Amaç |
-|--------|-----------|------|
-| **Backend** | Python 3.8+, FastAPI | API ve iş lojiği |
-| **Frontend** | Next.js, TypeScript, React | Web arayüzü |
-| **Desktop** | Electron | Masaüstü uygulaması |
-| **Bot** | python-telegram-bot | Telegram entegrasyonu |
-| **Veri** | TradingView (tvDatafeed) | Gerçek zamanlı BIST verileri |
-| **Haberler** | feedparser, NewsAPI, requests | Haber toplama |
-| **Teknik Analiz** | pandas, numpy, ta | Gösterge hesaplama |
-| **AI** | OpenAI SDK, OpenRouter, Groq | Yapay zekâ analizi |
-| **Modeller** | DeepSeek Chat, Llama 3.3 70B | AI motoru |
-| **Deployment** | cPanel, PWA, Service Worker | Yayınlama ve offline |
+| Katman | Teknoloji |
+|--------|-----------|
+| Backend | Python 3.11+, FastAPI, pandas, numpy, ta |
+| Mobil | Flutter 3.x, Dart, Riverpod |
+| Web | Next.js, TypeScript, React |
+| Bot | python-telegram-bot |
+| Veri | tvdatafeed-enhanced (TradingView) |
+| AI | OpenRouter (DeepSeek), Groq (Llama 3.3) |
+| Deploy | cPanel Passenger, Codemagic (iOS/Android build) |
 
----
+### Desteklenen BIST hisseleri (örnek)
 
-## 7. 🎯 Hedef Kitle
-
-### Birincil Hedef Kitle
-| Segment | Profil | Tahmini Büyüklük |
-|---------|--------|-------------------|
-| **Bireysel Yatırımcılar** | 25-45 yaş, aktif BIST yatırımcısı, mobil odaklı | ~3 milyon |
-| **Yeni Başlayan Yatırımcılar** | 18-30 yaş, finansal okuryazarlık ihtiyacı olan | ~2 milyon |
-| **Part-time Trader'lar** | Gün içi trade yapan, hızlı sinyal ihtiyacı olan | ~500 bin |
-
-### İkincil Hedef Kitle
-| Segment | Profil |
-|---------|--------|
-| **Finans Öğrencileri** | Üniversite öğrencileri, pratik uygulama arayan |
-| **Yatırım Kulüpleri** | Üniversite ve özel yatırım toplulukları |
-| **Küçük Finans Firmaları** | API entegrasyonu ile kendi ürünlerine eklemek isteyen |
+THYAO, GARAN, AKBNK, ASELS, KRDMD, TUPRS, ISCTR, YKBNK, HALKB, VAKBN, SISE, BIMAS, EREGL, HEKTS, SASA, FROTO, TOASO, KCHOL, SAHOL ve diğerleri — **24+ hisse**, genişletilebilir whitelist.
 
 ---
 
-## 8. 💼 İş Modeli
+## 7. Değer Önerisi ve Hackathon Katkısı
 
-### Gelir Kaynakları
+**MK AI**, yapay zekâyı finansal okuryazarlığı artırmak ve bireysel yatırımcıya **şeffaf, çok kaynaklı karar desteği** sunmak için kullanır:
 
-| Model | Açıklama | Fiyatlandırma |
-|-------|----------|---------------|
-| **Freemium** | Temel analiz ve sınırlı sorgu hakkı ücretsiz | Ücretsiz |
-| **Premium Abonelik** | Sınırsız analiz, gelişmiş AI yorumları, öncelikli destek | Aylık 49-99 ₺ |
-| **Pro Abonelik** | API erişimi, özel hisse listeleri, portföy takibi | Aylık 199-299 ₺ |
-| **Kurumsal API** | Üçüncü parti entegrasyonlar için API lisansı | Özel fiyatlandırma |
-| **Eğitim İçerikleri** | Premium eğitim paketleri ve sertifika programları | Tek seferlik |
-
-### Gelir Projeksiyonu (İlk 3 Yıl)
-
-| Yıl | Kullanıcı Sayısı | Premium Dönüşüm | Tahmini Aylık Gelir |
-|-----|-------------------|------------------|---------------------|
-| 1. Yıl | 10.000 | %5 (500 premium) | ~35.000 ₺ |
-| 2. Yıl | 50.000 | %7 (3.500 premium) | ~250.000 ₺ |
-| 3. Yıl | 150.000 | %10 (15.000 premium) | ~1.000.000 ₺ |
+- **Demokratikleştirme:** Profesyonel düzey analiz mantığını erişilebilir kanallara taşır.
+- **Yerellik:** BIST ve Türkçe odaklı; uluslararası generic araçların boşluğunu doldurur.
+- **AI etiği:** Tavsiye değil bilgilendirme; risk uyarısı zorunlu.
+- **Ölçeklenebilir mimari:** REST API ile üçüncü parti ve kurumsal entegrasyona açık.
 
 ---
 
-## 9. 🏆 Rekabet Analizi
+## 8. Rekabet ve Farklılaşma
 
-### Mevcut Alternatifler ve MK AI'ın Farkı
-
-| Özellik | Bloomberg | Investing.com | Matriks | **MK AI** |
-|---------|-----------|---------------|---------|-----------|
-| BIST Odaklı | ❌ | Kısmen | ✅ | ✅ |
-| Türkçe Arayüz | ❌ | Kısmen | ✅ | ✅ |
-| AI Destekli Yorum | ❌ | ❌ | ❌ | ✅ |
-| Haber Duyarlılık | ❌ | ❌ | ❌ | ✅ |
-| Telegram Bot | ❌ | ❌ | ❌ | ✅ |
-| Eğitim Modülü | ❌ | Kısmen | ❌ | ✅ |
-| Maliyet | $25.000/yıl | Ücretsiz/reklam | ~500-1000 ₺/ay | **Freemium** |
-| Çok Kanallı | ❌ | Web/Mobil | Web | **4 Kanal** |
-
-### Rekabet Avantajları
-
-1. **Türkiye'nin ilk** tamamen Türkçe, BIST'e özel, AI destekli analiz platformu
-2. **Multi-platform** — Tek ürün, 4 farklı erişim kanalı
-3. **Yapay zekâ entegrasyonu** — Rakiplerin hiçbirinde yok
-4. **Haber duyarlılık analizi** — 12+ kaynaktan otomatik sentiment
-5. **Düşük maliyet** — Öğrenci ve bireysel yatırımcı dostu
-6. **Eğitim odaklı** — Sadece sinyal değil, öğretici içerik de sunar
+| Özellik | Klasik terminal | Genel finans siteleri | **MK AI** |
+|---------|-----------------|----------------------|-----------|
+| BIST odaklı | Kısmen | Kısmen | ✅ |
+| Türkçe AI sohbet | ❌ | ❌ | ✅ |
+| Haber duyarlılık (çok kaynak) | ❌ | Kısmen | ✅ |
+| Telegram + Mobil + API | ❌ | Kısmen | ✅ |
+| Manipülasyona dayanıklı çok katman | ❌ | ❌ | ✅ (tasarım hedefi) |
+| Düşük maliyet / freemium | ❌ | Reklamlı | ✅ hedef |
 
 ---
 
-## 10. � Satış ve Pazarlama
+## 9. Yol Haritası
 
-### Ürün veya hizmetinizi müşteri/faydalanıcılara nasıl sunuyorsunuz/sunacaksınız?
+### Faz 1 — MVP (Tamamlandı ✅)
 
-MK AI, **çok kanallı dijital dağıtım modeli** ile müşterilerine ulaşır:
+- [x] Telegram bot ve teknik analiz motoru
+- [x] Haber toplama ve duyarlılık skoru
+- [x] AI entegrasyonu (Groq + OpenRouter)
+- [x] FastAPI REST API ve cPanel deploy
+- [x] Flutter mobil uygulama (Dashboard, Analiz, Haber, Chat, Portföy, Ayarlar)
+- [x] Web dashboard ve Electron
+- [x] Codemagic iOS/Android build pipeline
 
-- **Telegram Bot**: Kullanıcı tek bir komutla (`/analyze THYAO`) anında profesyonel analiz alır. Kurulum gerektirmez, uygulama indirmeye gerek yoktur, Telegram üzerinden anında erişim sağlanır.
-- **Web Dashboard (PWA)**: Tarayıcı üzerinden interaktif grafik, teknik gösterge kartları ve AI sohbet asistanı ile detaylı analiz sunar. Progressive Web App desteği sayesinde offline erişim de mümkündür.
-- **Desktop Uygulaması**: Electron tabanlı Windows ve Mac masaüstü uygulaması ile profesyonel kullanıcılara tam ekran deneyim sunar.
-- **REST API**: Kurumsal müşteriler ve üçüncü parti uygulamalar için FastAPI altyapısı ile entegrasyon hizmeti sağlar.
-- **Freemium Model**: Temel analizler ücretsiz sunularak giriş bariyeri sıfıra indirilir. Gelişmiş AI yorumları, sınırsız sorgu ve portföy takibi gibi özellikler premium abonelik ile sunulur.
+### Faz 2 — Büyüme (2026)
 
-### Müşteri/faydalanıcıyı nasıl edineceksiniz?
-
-1. **Organik Büyüme (Telegram Viral Döngüsü)**: Telegram yatırımcı grupları ve borsa forumlarında (Borsa İstanbul toplulukları, Reddit r/borsaistanbul, Ekşi Sözlük borsa başlıkları) doğrudan bot tanıtımı yapılır. Telegram'ın paylaşım yapısı viral büyümeyi destekler.
-
-2. **Sosyal Medya Pazarlama**: Twitter/X, Instagram ve YouTube üzerinden günlük BIST analiz içerikleri, piyasa yorumları ve eğitim videoları paylaşılarak hedef kitleye organik olarak ulaşılır.
-
-3. **İçerik Pazarlama (SEO)**: Eğitim modülündeki içerikler blog yazılarına dönüştürülerek Google aramalarında üst sıralarda yer alınır. "RSI nedir?", "BIST teknik analiz nasıl yapılır?" gibi anahtar kelimeler hedeflenir.
-
-4. **Ağızdan Ağıza Yayılım**: Ücretsiz katman sayesinde kullanıcılar botu arkadaşlarıyla paylaşır. Telegram'ın link paylaşım yapısı bu modele uygundur.
-
-5. **Üniversite İş Birlikleri**: Üniversite yatırım kulüpleri ile demo sunumlar, workshop'lar ve öğrenci indirimleri ile genç yatırımcı segmentine ulaşılır.
-
-6. **Finans İçerik Üreticileri**: Borsa alanında içerik üreten YouTube kanalları, podcast'ler ve influencer'larla iş birliği yapılarak ürün deneme ve tanıtım gerçekleştirilir.
-
-7. **Referans Programı**: Mevcut kullanıcıların yeni kullanıcı getirdiğinde premium özellikler kazanmasını sağlayan bir davet sistemi kurulur.
-
----
-
-## 11. �📈 SWOT Analizi
-
-### Güçlü Yönler (Strengths)
-- ✅ Yapay zekâ entegrasyonu (DeepSeek + Llama 3.3)
-- ✅ Multi-platform erişim (Telegram, Web, Desktop, API)
-- ✅ %100 Türkçe, BIST'e özel
-- ✅ 12+ haber kaynağı entegrasyonu
-- ✅ Çalışan MVP (Minimum Viable Product) mevcut
-- ✅ Düşük operasyon maliyeti
-
-### Zayıf Yönler (Weaknesses)
-- ⚠️ İlk aşamada sınırlı hisse kapsamı (24 hisse)
-- ⚠️ Tek kişilik geliştirici ekibi
-- ⚠️ Temel veriler (P/E, temettü) henüz sınırlı
-- ⚠️ Marka bilinirliği henüz yok
-
-### Fırsatlar (Opportunities)
-- 🚀 Türkiye'de hızla büyüyen bireysel yatırımcı sayısı (+%30 yıllık artış)
-- 🚀 FinTech sektörüne artan yatırımcı ilgisi
-- 🚀 AI teknolojisinin hızla gelişmesi ve maliyetlerin düşmesi
-- 🚀 Kripto para ve forex piyasalarına genişleme potansiyeli
-- 🚀 B2B API satışı ile aracı kurumlara hizmet
-
-### Tehditler (Threats)
-- ⛔ Büyük finans şirketlerinin benzer ürün geliştirmesi
-- ⛔ Düzenleyici (SPK) kısıtlamalar
-- ⛔ Veri kaynaklarının erişilebilirlik sorunları
-- ⛔ AI model maliyetlerinin artması
-
----
-
-## 12. 🗺️ Yol Haritası
-
-### Faz 1: MVP ve Doğrulama (Tamamlandı ✅)
-- [x] Telegram Bot geliştirme
-- [x] Teknik analiz motoru (RSI, MACD, Bollinger, ADX)
-- [x] Haber duyarlılık analizi
-- [x] AI entegrasyonu (OpenRouter + Groq)
-- [x] Web Dashboard (Next.js)
-- [x] Desktop uygulaması (Electron)
-- [x] REST API (FastAPI)
-- [x] PWA desteği ve offline çalışma
-- [x] Eğitim modülü
-
-### Faz 2: Büyüme (2026 Q2-Q3)
-- [ ] Kullanıcı hesap sistemi ve kişiselleştirme
-- [ ] Portföy takip sistemi
+- [ ] Tüm BIST hisselerine genişleme
+- [ ] Gelişmiş NLP duyarlılık (transformer tabanlı)
 - [ ] Push notification / fiyat alarmları
-- [ ] Hisse kapsamını genişletme (tüm BIST hisseleri)
-- [ ] Gelişmiş grafik modülü (TradingView widget)
+- [ ] Kullanıcı hesabı ve bulut senkronizasyonu
 - [ ] Backtesting modülü
 
-### Faz 3: Ölçekleme (2026 Q4 - 2027)
-- [ ] Premium abonelik sistemi ve ödeme entegrasyonu
-- [ ] Mobil uygulama (React Native)
-- [ ] Kripto para ve forex desteği
-- [ ] Gelişmiş NLP tabanlı duyarlılık analizi
+### Faz 3 — Ölçekleme (2026–2027)
+
+- [ ] Premium abonelik ve ödeme
 - [ ] B2B API lisanslama
-- [ ] Topluluk özellikleri (yatırımcı forumu)
-
-### Faz 4: Genişleme (2027+)
-- [ ] Uluslararası piyasalar (NYSE, NASDAQ desteği)
-- [ ] Çok dilli destek
-- [ ] Portföy optimizasyonu (Markowitz modeli)
-- [ ] Sosyal trading özellikleri
-- [ ] Otomatik trading entegrasyonu (aracı kurum API'leri)
+- [ ] Kripto / forex genişlemesi (opsiyonel)
+- [ ] Kurumsal aracı kurum entegrasyonları
 
 ---
 
-## 13. 💰 Mali Gereksinimler
+## 10. Demo ve Değerlendirme Kriterleri
 
-### Başlangıç Maliyetleri
+### Canlı demo adresleri
 
-| Kalem | Maliyet (Aylık) | Açıklama |
-|-------|-----------------|----------|
-| Sunucu / Hosting | ~500-1.000 ₺ | cPanel veya VPS |
-| AI API Maliyeti | ~1.000-3.000 ₺ | OpenRouter + Groq kullanım |
-| Domain + SSL | ~200 ₺ | Yıllık, aylığa bölünmüş |
-| Haber API | ~500 ₺ | NewsAPI premium |
-| **Toplam** | **~2.200 - 4.700 ₺/ay** | |
+| Kanal | Adres / Erişim |
+|-------|----------------|
+| **API** | https://m-koray.online/api |
+| **API Docs** | https://m-koray.online/api/docs |
+| **GitHub** | https://github.com/mkor4y/mk-ai |
+| **Mobil** | Flutter APK / iOS (Codemagic artifact + Sideloadly) |
+| **Telegram** | Bot komutu: `/analyze THYAO` |
 
-### İlk Yıl Tahmini Toplam Bütçe
-- Geliştirme ve operasyon: **~50.000 ₺**
-- Pazarlama ve kullanıcı kazanımı: **~30.000 ₺**
-- **Toplam: ~80.000 ₺**
+### Jüri için önerilen demo akışı (5 dk)
 
----
-
-## 14. 👨‍💻 Ekip
-
-### Kurucu ve Geliştirici
-**Mustafa Koray Kök**
-- Full-stack geliştirici
-- Python, TypeScript, React, Next.js, FastAPI
-- Yapay zekâ ve veri analitiği deneyimi
-- BIST piyasa bilgisi
-
-### İhtiyaç Duyulan Roller (Büyüme Aşaması)
-| Rol | Görev | Zaman |
-|-----|-------|-------|
-| UI/UX Tasarımcı | Arayüz iyileştirme | Part-time |
-| Pazarlama Uzmanı | Dijital pazarlama, sosyal medya | Part-time |
-| Finans Danışmanı | SPK uyumluluk, içerik doğrulama | Danışman |
+1. **API health:** `GET /` → `status: running`
+2. **Piyasa:** `GET /api/market/summary` → BIST 100 + watchlist
+3. **Analiz:** `GET /api/analyze/THYAO` → teknik + sinyal + AI özeti
+4. **Mobil:** Dashboard → THYAO analiz → haber duyarlılığı → AI chat sorusu
+5. **Manipülasyon vurgusu:** Tek haber yerine çok kaynak + kural tabanlı RSI/MACD + risk uyarısı
 
 ---
 
-## 15. 📋 Kullanım Senaryoları
+## 11. SWOT Analizi
 
-### Senaryo 1: Telegram ile Hızlı Analiz
-```
-Kullanıcı: /analyze THYAO
-MK AI Bot: 
-  📊 Türk Hava Yolları (THYAO) Analizi
-  
-  💰 Fiyat: 312.50 ₺ (+%2.3)
-  📈 RSI: 62.3 (Nötr)
-  🎯 MACD: Boğa Sinyali
-  🚀 Genel Sinyal: AL (%72 Güven)
-  
-  📰 Haber Duyarlılığı: POZİTİF (+0.45)
-  
-  🤖 AI Yorumu: Kısa vadede yükseliş beklentisi...
-```
+| Güçlü | Zayıf |
+|-------|-------|
+| Çalışan çok kanallı MVP | Sınırlı hisse whitelist (genişletilebilir) |
+| AI + teknik + haber entegrasyonu | Tek kişilik geliştirme ekibi |
+| Türkçe, BIST odaklı | Marka bilinirliği yeni |
+| Düşük operasyon maliyeti hedefi | Temel veriler (P/E) kısmen eksik |
 
-### Senaryo 2: Web Dashboard
-- Canlı piyasa özeti ve endeks takibi
-- Watchlist ile favori hisseleri izleme
-- Detaylı teknik gösterge kartları (RSI, MACD, Bollinger, Ortalamalar)
-- AI destekli interaktif analiz
-
-### Senaryo 3: AI Chat Asistanı
-- Doğal dilde soru: *"BIST 100 bugün nasıl?"*
-- Teknik soru: *"RSI göstergesini açıkla"*
-- Analiz talebi: *"THYAO teknik analizi yap"*
-
-### Senaryo 4: Eğitim
-- Başlangıç seviyesinden ileri düzeye kademeli eğitim
-- Teknik göstergelerin teorisi ve pratik uygulaması
-- Risk yönetimi ve trading psikolojisi
+| Fırsat | Tehdit |
+|--------|--------|
+| Büyüyen bireysel yatırımcı tabanı | SPK / düzenleyici gereksinimler |
+| AI maliyetlerinin düşmesi | Büyük oyuncuların benzer ürünü |
+| FinTech yatırım ilgisi | Veri kaynağı erişim kısıtları |
 
 ---
 
-## 16. ⚠️ Yasal Bilgilendirme
+## 12. Ekip
 
-- Bu platform **sadece bilgilendirme amaçlıdır** ve **yatırım tavsiyesi niteliği taşımaz**.
-- Kullanıcılar yatırım kararlarını kendi araştırmalarına dayandırmalıdır.
-- Geçmiş performans, gelecekteki sonuçların garantisi değildir.
-- Platform, SPK düzenlemelerine uygun olarak geliştirilmektedir.
-- Her analiz çıktısında risk uyarısı gösterilmektedir.
+**Mustafa Koray Kök** — Kurucu ve full-stack geliştirici
+
+- Python, FastAPI, Flutter, TypeScript, React/Next.js
+- Yapay zekâ entegrasyonu (LLM API, prompt mühendisliği)
+- BIST piyasa bilgisi ve ürün tasarımı
+
+**İletişim:** 24390008063@yyu.edu.tr (YYÜ)
 
 ---
 
-## 17. 📞 İletişim
+## 13. Yasal Bilgilendirme
+
+- MK AI **yatırım tavsiyesi vermez**; yalnızca bilgilendirme amaçlıdır.
+- Geçmiş performans gelecekteki sonuçların garantisi değildir.
+- BIST yatırımları sermaye kaybı riski taşır.
+- Kullanıcılar kararlarını kendi araştırmalarına dayandırmalıdır.
+- Uygulama içinde risk uyarısı gösterilmektedir.
+
+---
+
+## 14. Ürün Detayı (Başvuru Formu Metni)
+
+MK AI, yaklaşık bir ay önce geliştirmeye başladığım basit Borsa İstanbul Telegram botundan, bugün tam kapsamlı ve manipülasyonlardan etkilenmeyecek şekilde tasarlanmış bir yapay zekâ destekli karar destek sistemine evrilmiştir. Sistem; teknik analiz motoru, çok kaynaklı haber duyarlılığı, büyük dil modelleri ile yorum üretimi ve Flutter mobil uygulama üzerinden kullanıcı deneyimini bir araya getirir. Yatırımcıya tek kanallı yanıltıcı yönlendirmeler yerine ölçülebilir göstergeler, şeffaf güven skorları ve zorunlu risk uyarıları sunar. Telegram, mobil uygulama, web ve REST API ile erişilebilir; Türkiye'deki bireysel BIST yatırımcılarına yönelik yerel ve Türkçe bir çözümdür.
+
+---
+
+## 15. İletişim
 
 | Kanal | Bilgi |
-|-------|-------|
+|-------|--------|
 | **Geliştirici** | Mustafa Koray Kök |
-| **E-posta** | [E-posta adresinizi buraya ekleyin] |
-| **Telegram Bot** | [Bot linkini buraya ekleyin] |
-| **Web** | [Web sitesi adresini buraya ekleyin] |
-| **GitHub** | [Repo linkini buraya ekleyin] |
+| **E-posta** | 24390008063@yyu.edu.tr |
+| **Web / API** | https://m-koray.online/api |
+| **GitHub** | https://github.com/mkor4y/mk-ai |
 
 ---
 
-> **"MK AI — İşletmeler İçin Akıl, Müşteriler İçin Değer."**
-
----
-
-*Bu doküman MK AI girişimcilik merkezi başvurusu için hazırlanmıştır. Şubat 2026.*
+> **MK AI — Akıllı Yatırım Asistanı**  
+> *BTK Yapay Zeka Hackathon başvuru dokümanı — Mayıs 2026*

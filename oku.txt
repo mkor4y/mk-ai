@@ -21,3 +21,29 @@ ipconfig
 # İNTERNETE AÇMA (Cloudflare - Yavaş olabilir)
 # ---------------------------------------------------------
 cloudflared tunnel --url http://localhost:3000
+
+# ---------------------------------------------------------
+# 4. Flutter Mobil (MK AI)
+# C:\mymodel\mobile klasöründe:
+# ---------------------------------------------------------
+cd C:\mymodel\mobile
+flutter pub get
+flutter devices
+flutter run
+
+# Üretim API ile
+flutter run --dart-define=API_BASE_URL=https://m-koray.online/api
+
+# Yerel backend (PC IP — ipconfig ile öğren)
+flutter run --dart-define=API_BASE_URL=http://192.168.1.35:8000
+
+# Android emülatör + yerel API
+flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8000
+
+# Release APK
+flutter build apk --release
+
+# Temizlik / analiz
+flutter clean
+flutter pub get
+flutter analyze
